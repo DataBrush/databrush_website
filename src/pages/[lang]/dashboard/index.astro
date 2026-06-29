@@ -46,54 +46,72 @@ const metadata = {
     </defs>
   </svg>
 
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="w-full max-w-none px-4 sm:px-8 lg:px-12 py-12">
     
     <!-- Redesigned Neobrutalist Dashboard Header -->
     <div class="border-4 border-black bg-white p-6 neo-shadow flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
       <div class="flex items-center gap-3">
-        <div class="w-12 h-12 bg-color-chart-1 border-4 border-black flex items-center justify-center font-black text-2xl neo-shadow select-none text-black">
-          R
+        <div class="w-16 h-16 border-4 border-black flex items-center justify-center font-black text-2xl neo-shadow select-none text-black">
+                 <!-- <div class="absolute top-1 right-1 w-14 h-14 bg-white border-2 border-purple-600 neo-shadow flex items-center justify-center p-1 shrink-0 select-none"> -->
+            <img src="/assets/Renoir.png" alt="Renoir Logo" class="w-full h-full object-contain" />
+          <!-- </div> -->
         </div>
         <div>
-          <h1 class="font-black text-2xl uppercase leading-none text-black">Renoir Pipeline Monitor</h1>
-          <p class="font-mono text-xs text-gray-500 mt-1">// Powered by Databrush - Live Topology Simulation</p>
+          <h1 class="font-black text-2xl uppercase leading-none text-black">{m.db_title()}</h1>
+          <p class="font-mono text-xs text-gray-500 mt-1">{m.db_subtitle()}</p>
         </div>
       </div>
       
-      <!-- Target status indicator for app.js -->
-      <div class="status-summary">
+      <!-- Target status indicator for app.js and Dropdown Menu -->
+      <div class="status-summary flex flex-wrap items-center gap-4">
         <div class="status-indicator-box healthy" id="global-status-indicator">
           <span class="status-dot"></span>
-          <span class="status-label">Pipeline: HEALTHY</span>
+          <span class="status-label">{m.db_status_healthy()}</span>
         </div>
-      </div>
-    </div>
 
-    <!-- Toolbar / Controls -->
-    <div class="app-toolbar border-4 border-black p-4 bg-white neo-shadow flex flex-wrap items-center justify-between gap-4 mb-8">
-      <div class="control-group flex flex-wrap gap-3">
-        <button class="sketch-btn active font-black text-sm uppercase px-4 py-2 border-2 border-black bg-color-chart-3 text-black hover:bg-yellow-300" id="btn-play-pause">
-          <span class="icon">⏸</span> Pause Sim
-        </button>
-        <button class="sketch-btn font-black text-sm uppercase px-4 py-2 border-2 border-black bg-white text-black hover:bg-gray-50" id="btn-inject-warning">
-          <span class="icon">⚠️</span> Inject Warning
-        </button>
-        <button class="sketch-btn font-black text-sm uppercase px-4 py-2 border-2 border-black bg-white text-black hover:bg-gray-50" id="btn-clear-selection">
-          <span class="icon">✨</span> Reset View
-        </button>
-      </div>
-
-      <div class="control-group slider-group flex items-center gap-2 font-bold text-sm text-black">
-        <label for="simulation-speed">Throughput Scale:</label>
-        <input type="range" id="simulation-speed" min="0.2" max="3" step="0.1" value="1" class="accent-black">
-        <span id="speed-value" class="font-mono bg-black text-white px-2 py-0.5">1.0x</span>
-      </div>
-
-      <!-- Hidden standard theme toggler since layout has global settings -->
-      <div class="control-group theme-group hidden">
-        <button class="sketch-btn" id="btn-theme-toggle">
-          <span class="icon">🌙</span> Dark Mode
-        </button>
+        <!-- Controls Dropdown wrapper -->
+        <div class="relative inline-block text-left" id="controls-dropdown-wrapper">
+          <button 
+            type="button" 
+            class="sketch-btn font-black text-sm uppercase px-4 py-2 border-2 border-black bg-color-chart-3 text-black hover:bg-yellow-300 neo-shadow flex items-center gap-2" 
+            id="btn-dropdown-toggle"
+            aria-expanded="false"
+            aria-haspopup="true"
+          >
+            <span>⚙️</span> {m.db_controls_btn()} <span class="transition-transform duration-200" id="dropdown-arrow">▼</span>
+          </button>
+          
+          <!-- Dropdown menu panel -->
+          <div 
+            class="hidden absolute right-0 mt-2 w-72 origin-top-right border-4 border-black bg-white neo-shadow p-4 z-50 flex flex-col gap-4" 
+            role="menu" 
+            aria-orientation="vertical" 
+            aria-labelledby="btn-dropdown-toggle"
+            id="controls-dropdown-menu"
+          >
+            <div class="font-black text-xs uppercase text-gray-500 border-b-2 border-black pb-1 mb-1">// {m.db_controls_title()}</div>
+            
+            <button class="sketch-btn active font-black text-xs uppercase px-3 py-2 border-2 border-black bg-color-chart-3 text-black hover:bg-yellow-300 w-full justify-center" id="btn-play-pause">
+              <span class="icon">⏸</span> {m.db_btn_pause()}
+            </button>
+            
+            <button class="sketch-btn font-black text-xs uppercase px-3 py-2 border-2 border-black bg-white text-black hover:bg-gray-50 w-full justify-center" id="btn-inject-warning">
+              <span class="icon">⚠️</span> {m.db_btn_inject_warn()}
+            </button>
+            
+            <button class="sketch-btn font-black text-xs uppercase px-3 py-2 border-2 border-black bg-white text-black hover:bg-gray-50 w-full justify-center" id="btn-clear-selection">
+              <span class="icon">✨</span> {m.db_btn_reset()}
+            </button>
+            
+            <div class="border-t-2 border-dashed border-black pt-3 flex flex-col gap-2 font-bold text-xs text-black">
+              <label for="simulation-speed">{m.db_throughput_scale()}</label>
+              <div class="flex items-center justify-between gap-2">
+                <input type="range" id="simulation-speed" min="0.2" max="3" step="0.1" value="1" class="accent-black w-full">
+                <span id="speed-value" class="font-mono bg-black text-white px-2 py-0.5 shrink-0">1.0x</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -103,8 +121,8 @@ const metadata = {
       <section class="dag-section">
         <div class="dag-outer-card border-4 border-black bg-white neo-shadow p-6 flex flex-col">
           <div class="dag-card-header border-b-2 border-black pb-4 mb-4">
-            <h2 class="font-black text-xl uppercase text-black">Pipeline Topology (DAG)</h2>
-            <p class="text-xs text-gray-500 font-mono mt-1">Click a node to view stats, or click the background to see pipeline-wide stats.</p>
+            <h2 class="font-black text-xl uppercase text-black">{m.db_topology_title()}</h2>
+            <p class="text-xs text-gray-500 font-mono mt-1">{m.db_topology_instruction()}</p>
           </div>
 
           <!-- Topology Container -->
@@ -120,8 +138,8 @@ const metadata = {
               <div class="dag-node absolute" id="node-operazioni-bancarie" data-node-id="operazioni-bancarie" style="left: 6%; top: 50%;">
                 <div class="node-border"></div>
                 <div class="node-content">
-                  <span class="node-type">Source</span>
-                  <span class="node-title">Operazioni Bancarie</span>
+                  <span class="node-type">{m.node_source_type()}</span>
+                  <span class="node-title">{m.node_operazioni_bancarie_title()}</span>
                 </div>
                 <div class="node-sketch-bubble">
                   <div class="bubble-border"></div>
@@ -137,8 +155,8 @@ const metadata = {
               <div class="dag-node absolute" id="node-controlli-utente" data-node-id="controlli-utente" style="left: 35%; top: 20%;">
                 <div class="node-border"></div>
                 <div class="node-content">
-                  <span class="node-type">Operator</span>
-                  <span class="node-title">Controlli Utente</span>
+                  <span class="node-type">{m.node_operator_type()}</span>
+                  <span class="node-title">{m.node_controlli_utente_title()}</span>
                 </div>
                 <div class="node-sketch-bubble">
                   <div class="bubble-border"></div>
@@ -155,8 +173,8 @@ const metadata = {
               <div class="dag-node absolute" id="node-controlli-transazione" data-node-id="controlli-transazione" style="left: 35%; top: 50%;">
                 <div class="node-border"></div>
                 <div class="node-content">
-                  <span class="node-type">Operator</span>
-                  <span class="node-title">Controlli Transazione</span>
+                  <span class="node-type">{m.node_operator_type()}</span>
+                  <span class="node-title">{m.node_controlli_transazione_title()}</span>
                 </div>
                 <div class="node-sketch-bubble">
                   <div class="bubble-border"></div>
@@ -172,8 +190,8 @@ const metadata = {
               <div class="dag-node absolute" id="node-salvataggio-audit-pre" data-node-id="salvataggio-audit-pre" style="left: 35%; top: 80%;">
                 <div class="node-border"></div>
                 <div class="node-content">
-                  <span class="node-type">Sink</span>
-                  <span class="node-title">Salvataggio Audit</span>
+                  <span class="node-type">{m.node_sink_type()}</span>
+                  <span class="node-title">{m.node_salvataggio_audit_title()}</span>
                 </div>
                 <div class="node-sketch-bubble">
                   <div class="bubble-border"></div>
@@ -189,8 +207,8 @@ const metadata = {
               <div class="dag-node absolute" id="node-accetta-rifiuto" data-node-id="accetta-rifiuto" style="left: 65%; top: 50%;">
                 <div class="node-border"></div>
                 <div class="node-content">
-                  <span class="node-type">Filter</span>
-                  <span class="node-title">Accetta / Rifiuto</span>
+                  <span class="node-type">{m.node_filter_type()}</span>
+                  <span class="node-title">{m.node_accetta_rifiuto_title()}</span>
                 </div>
                 <div class="node-sketch-bubble">
                   <div class="bubble-border"></div>
@@ -207,8 +225,8 @@ const metadata = {
               <div class="dag-node absolute" id="node-invio-conferma" data-node-id="invio-conferma" style="left: 92%; top: 35%;">
                 <div class="node-border"></div>
                 <div class="node-content">
-                  <span class="node-type">Sink</span>
-                  <span class="node-title">Invio Conferma</span>
+                  <span class="node-type">{m.node_sink_type()}</span>
+                  <span class="node-title">{m.node_invio_conferma_title()}</span>
                 </div>
                 <div class="node-sketch-bubble">
                   <div class="bubble-border"></div>
@@ -224,8 +242,8 @@ const metadata = {
               <div class="dag-node absolute" id="node-salvataggio-audit-post" data-node-id="salvataggio-audit-post" style="left: 92%; top: 65%;">
                 <div class="node-border"></div>
                 <div class="node-content">
-                  <span class="node-type">Sink</span>
-                  <span class="node-title">Salvataggio Audit</span>
+                  <span class="node-type">{m.node_sink_type()}</span>
+                  <span class="node-title">{m.node_salvataggio_audit_title()}</span>
                 </div>
                 <div class="node-sketch-bubble">
                   <div class="bubble-border"></div>
@@ -245,7 +263,7 @@ const metadata = {
           <div class="explainability-content">
             <div class="explainability-header border-b-2 border-black pb-3 mb-4 flex items-center justify-between">
               <h3 class="font-black text-lg uppercase text-black flex items-center gap-2">
-                <span>🔍</span> Operator Inspector: <span id="explain-node-name">Node Name</span>
+                <span>🔍</span> {m.db_operator_inspector()}: <span id="explain-node-name">Node Name</span>
               </h3>
               <span class="notebook-badge bg-color-chart-1 text-black font-black text-xs uppercase px-2 py-0.5 border-2 border-black" id="explain-node-type">Operator</span>
             </div>
@@ -255,12 +273,12 @@ const metadata = {
               </div>
               <div class="explainability-io-section grid grid-cols-1 md:grid-cols-11 gap-4 items-center">
                 <div class="io-box md:col-span-5 border-2 border-black p-3 bg-gray-50">
-                  <h4 class="font-black text-xs uppercase mb-2">Input Data Stream</h4>
+                  <h4 class="font-black text-xs uppercase mb-2">{m.db_input_stream()}</h4>
                   <pre class="font-mono text-xs overflow-x-auto bg-black text-white p-2 border border-black"><code id="explain-node-input">...</code></pre>
                 </div>
                 <div class="io-arrow md:col-span-1 text-center font-black text-2xl text-black">➜</div>
                 <div class="io-box md:col-span-5 border-2 border-black p-3 bg-gray-50">
-                  <h4 class="font-black text-xs uppercase mb-2">Output Data Stream</h4>
+                  <h4 class="font-black text-xs uppercase mb-2">{m.db_output_stream()}</h4>
                   <pre class="font-mono text-xs overflow-x-auto bg-black text-white p-2 border border-black"><code id="explain-node-output">...</code></pre>
                 </div>
               </div>
@@ -281,44 +299,44 @@ const metadata = {
 
           <div class="notebook-content pl-4">
             <div class="notebook-header border-b-2 border-black pb-3 mb-4 flex items-center justify-between">
-              <h2 class="font-black text-xl uppercase text-black" id="inspector-title">Pipeline Statistics</h2>
-              <span class="notebook-badge bg-color-chart-3 text-black font-black text-xs uppercase px-2 py-0.5 border-2 border-black" id="inspector-badge">Global</span>
+              <h2 class="font-black text-xl uppercase text-black" id="inspector-title">{m.db_inspector_global_title()}</h2>
+              <span class="notebook-badge bg-color-chart-3 text-black font-black text-xs uppercase px-2 py-0.5 border-2 border-black" id="inspector-badge">{m.db_inspector_global_badge()}</span>
             </div>
 
             <div class="notebook-body space-y-4 text-black">
               <!-- Stat Fields -->
               <div class="notebook-stat-row flex justify-between border-b border-gray-200 pb-2">
-                <span class="label font-bold text-gray-500 uppercase text-xs">Status:</span>
+                <span class="label font-bold text-gray-500 uppercase text-xs">{m.db_inspector_status()}</span>
                 <span class="value font-black text-sm" id="stat-status">Healthy</span>
               </div>
               <div class="notebook-stat-row flex justify-between border-b border-gray-200 pb-2">
-                <span class="label font-bold text-gray-500 uppercase text-xs">Throughput:</span>
+                <span class="label font-bold text-gray-500 uppercase text-xs">{m.db_inspector_throughput()}</span>
                 <span class="value font-black text-sm" id="stat-throughput">3.1M/s</span>
               </div>
               <div class="notebook-stat-row flex justify-between border-b border-gray-200 pb-2">
-                <span class="label font-bold text-gray-500 uppercase text-xs">Avg Latency:</span>
+                <span class="label font-bold text-gray-500 uppercase text-xs">{m.db_inspector_latency()}</span>
                 <span class="value font-black text-sm font-mono" id="stat-latency">2.0 ms</span>
               </div>
               <div class="notebook-stat-row flex justify-between border-b border-gray-200 pb-2">
-                <span class="label font-bold text-gray-500 uppercase text-xs">CPU Usage:</span>
+                <span class="label font-bold text-gray-500 uppercase text-xs">{m.db_inspector_cpu()}</span>
                 <span class="value font-black text-sm font-mono" id="stat-cpu">20%</span>
               </div>
               <div class="notebook-stat-row flex justify-between border-b border-gray-200 pb-2">
-                <span class="label font-bold text-gray-500 uppercase text-xs">Memory Alloc:</span>
+                <span class="label font-bold text-gray-500 uppercase text-xs">{m.db_inspector_mem()}</span>
                 <span class="value font-black text-sm font-mono" id="stat-mem">5.0 Gb</span>
               </div>
 
               <!-- Special custom info row -->
               <div class="notebook-custom-section border-2 border-black p-4 bg-gray-50" id="inspector-custom-section">
-                <h3 class="font-black text-xs uppercase mb-1">Topology Info</h3>
+                <h3 class="font-black text-xs uppercase mb-1">{m.db_inspector_custom_title()}</h3>
                 <p id="inspector-custom-text" class="font-bold text-xs text-gray-700 leading-relaxed">
-                  Global monitoring of the 7 running nodes. Click on any node inside the topology DAG to drill down into localized operator statistics.
+                  {m.db_inspector_custom_text()}
                 </p>
               </div>
 
               <!-- Sparkline Chart -->
               <div class="notebook-chart-section border-2 border-black p-4 bg-white">
-                <h3 class="font-black text-xs uppercase mb-2">Real-time Activity (Throughput)</h3>
+                <h3 class="font-black text-xs uppercase mb-2">{m.db_inspector_chart_title()}</h3>
                 <div class="chart-container h-20 bg-gray-50 border border-black overflow-hidden relative">
                   <svg id="sparkline-svg" viewBox="0 0 300 80" preserveAspectRatio="none" class="w-full h-full">
                     <!-- Dynamic sparkline curve -->
@@ -329,11 +347,11 @@ const metadata = {
 
               <!-- Notepad Event Log -->
               <div class="notebook-log-section border-2 border-black p-4 bg-white">
-                <h3 class="font-black text-xs uppercase mb-2">Event Log</h3>
+                <h3 class="font-black text-xs uppercase mb-2">{m.db_inspector_log_title()}</h3>
                 <div class="log-console font-mono text-[10px] leading-relaxed max-h-24 overflow-y-auto space-y-1 text-gray-700 bg-gray-50 p-2 border border-black" id="log-console">
-                  <div class="log-entry">[10:32:01] INFO: Pipeline successfully loaded.</div>
-                  <div class="log-entry">[10:32:05] INFO: Connecting to Operazioni Bancarie source...</div>
-                  <div class="log-entry">[10:32:10] INFO: Pipeline streaming active.</div>
+                  <div class="log-entry">[10:32:01] INFO: {lang === 'en' ? 'Pipeline successfully loaded.' : 'Pipeline caricata correttamente.'}</div>
+                  <div class="log-entry">[10:32:05] INFO: {lang === 'en' ? 'Connecting to Banking Transactions source...' : "Connessione all'origine Operazioni Bancarie..."}</div>
+                  <div class="log-entry">[10:32:10] INFO: {lang === 'en' ? 'Pipeline streaming active.' : 'Streaming pipeline attivo.'}</div>
                 </div>
               </div>
             </div>

@@ -1,96 +1,50 @@
-/* CSS Custom Properties for Neobrutalist Light & Dark Themes */
+/* CSS Custom Properties for Neobrutalist Light Theme (aligned with website) */
 :root {
-  /* Default Variant: Neobrutalist Light */
   --font-body: 'Lexend', sans-serif;
   --font-title: 'Lexend', sans-serif;
   
-  --bg-color: #faf5fc; /* pale Renoir purple tint */
-  --bg-image: 
-    linear-gradient(90deg, rgba(175, 74, 212, 0.04) 1px, transparent 1px),
-    linear-gradient(rgba(175, 74, 212, 0.04) 1px, transparent 1px);
+  --bg-color: var(--background); /* pale purple/gray website background */
+  --bg-image: none;
   --bg-size: 20px 20px;
   
-  --text-color: #000000;
+  --text-color: var(--foreground);
   --text-muted: #4b5563;
   
   /* Cards */
-  --card-bg: #ffffff;
-  --card-border: 4px solid #000000;
-  --card-shadow: 8px 8px 0px #000000;
+  --card-bg: var(--secondary-background); /* white */
+  --card-border: 4px solid var(--foreground);
+  --card-shadow: 8px 8px 0px var(--foreground);
   --card-radius: 0px; /* sharp angles */
   
   /* Nodes */
-  --node-bg: #ffffff;
-  --node-border: #000000;
+  --node-bg: var(--secondary-background);
+  --node-border: var(--foreground);
   --node-border-width: 3.5px;
-  --node-radius: 0px; /* sharp rectangles */
-  --node-shadow: 4px 4px 0px #000000;
-  --node-hover-bg: rgba(38, 233, 175, 0.2); /* Databrush Mint Green tint */
+  --node-radius: 0px;
+  --node-shadow: 4px 4px 0px var(--foreground);
+  --node-hover-bg: rgba(0, 214, 150, 0.15); /* Databrush Mint Green tint */
   
   /* Buttons */
-  --btn-bg: #AF4AD4; /* Renoir Purple */
-  --btn-text-color: #ffffff; /* white text */
-  --btn-border: 3px solid #000000;
-  --btn-shadow: 4px 4px 0px #000000;
+  --btn-bg: var(--chart-1); /* Databrush Lavender */
+  --btn-text-color: var(--foreground);
+  --btn-border: 3px solid var(--foreground);
+  --btn-shadow: 4px 4px 0px var(--foreground);
   --btn-radius: 0px;
   
   /* Inspector Notepad */
-  --notebook-bg: #ffffff; /* solid clean white page */
-  --notebook-border: 4px solid #000000;
-  --notebook-shadow: 8px 8px 0px #000000;
+  --notebook-bg: var(--secondary-background);
+  --notebook-border: 4px solid var(--foreground);
+  --notebook-shadow: 8px 8px 0px var(--foreground);
   --notebook-radius: 0px;
   
   /* SVG Connections & Flow */
-  --arrow-color: #000000;
-  --particle-color: #26E9AF; /* Databrush Mint Green flow dots */
-  --particle-stroke: #000000;
+  --arrow-color: var(--foreground);
+  --particle-color: var(--chart-2); /* Databrush Mint Green flow dots */
+  --particle-stroke: var(--foreground);
   --particle-size: 5px;
   
   /* Boundaries */
-  --boundary-border: 3.5px dashed #000000;
-}
-
-body.theme-neobrutalist-dark {
-  /* Variant 2: Neobrutalist Dark */
-  --bg-color: #130a1c; /* dark Renoir purple-black */
-  --bg-image: 
-    linear-gradient(90deg, rgba(175, 74, 212, 0.1) 1px, transparent 1px),
-    linear-gradient(rgba(175, 74, 212, 0.1) 1px, transparent 1px);
-  --bg-size: 20px 20px;
-  
-  --text-color: #ffffff;
-  --text-muted: #a1a1aa;
-  
-  /* Cards */
-  --card-bg: #1d122b; /* dark purple slate */
-  --card-border: 4px solid #ffffff;
-  --card-shadow: 8px 8px 0px #ffffff;
-  
-  /* Nodes */
-  --node-bg: #1d122b;
-  --node-border: #ffffff;
-  --node-border-width: 3.5px;
-  --node-shadow: 4px 4px 0px #ffffff;
-  --node-hover-bg: rgba(38, 233, 175, 0.15);
-  
-  /* Buttons */
-  --btn-bg: #AF4AD4; /* Renoir Purple */
-  --btn-text-color: #ffffff;
-  --btn-border: 3px solid #ffffff;
-  --btn-shadow: 4px 4px 0px #ffffff;
-  
-  /* Inspector Notepad */
-  --notebook-bg: #1d122b;
-  --notebook-border: 4px solid #ffffff;
-  --notebook-shadow: 8px 8px 0px #ffffff;
-  
-  /* SVG Connections & Flow */
-  --arrow-color: #ffffff;
-  --particle-color: #26E9AF;
-  --particle-stroke: #ffffff;
-  
-  /* Boundaries */
-  --boundary-border: 3.5px dashed #ffffff;
+  --boundary-border: 3.5px dashed var(--foreground);
 }
 
 /* Reset and Base Styles */
@@ -111,7 +65,7 @@ body {
 }
 
 .app-wrapper {
-  max-width: 1400px;
+  max-width: 100%;
   width: 100%;
   margin: 0 auto;
   padding: 20px;
@@ -142,7 +96,7 @@ body {
   height: 45px;
   border: 3px solid var(--text-color);
   border-radius: 0px;
-  background-color: #AF4AD4; /* Renoir Purple */
+  background-color: var(--chart-1); /* Renoir Purple */
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -181,17 +135,13 @@ body.theme-neobrutalist-dark .logo-icon {
   padding: 8px 16px;
   border-radius: 0px;
   font-weight: 800;
-  background-color: #26E9AF; /* Databrush Mint Green */
+  background-color: var(--chart-2); /* Databrush Mint Green */
   color: #000000;
   box-shadow: var(--btn-shadow);
 }
 
-body.theme-neobrutalist-dark .status-indicator-box {
-  border-color: #ffffff;
-}
-
 .status-indicator-box.warning {
-  background-color: #AF4AD4; /* Renoir Purple */
+  background-color: var(--chart-4); /* Databrush Warning Red */
   color: #ffffff;
 }
 
@@ -199,27 +149,41 @@ body.theme-neobrutalist-dark .status-indicator-box {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: #26E9AF;
+  background-color: var(--chart-2);
   border: 1px solid var(--text-color);
 }
 
-body.theme-neobrutalist-dark .status-dot {
-  background-color: #26E9AF;
-  border-color: #ffffff;
-}
-
 .status-indicator-box.warning .status-dot {
-  background-color: #AF4AD4;
+  background-color: #ffffff;
 }
 
-/* Toolbar / Controls */
-.app-toolbar {
+/* Controls Dropdown styling */
+#controls-dropdown-wrapper {
+  position: relative;
+}
+
+#controls-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 8px;
+  width: 288px; /* 18rem */
+  border: 4px solid var(--text-color);
+  background-color: var(--card-bg);
+  box-shadow: 6px 6px 0px var(--text-color);
+  padding: 16px;
+  z-index: 50;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  gap: 20px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#controls-dropdown-menu.hidden {
+  display: none !important;
+}
+
+#btn-dropdown-toggle span.transition-transform {
+  display: inline-block;
 }
 
 .control-group {
@@ -258,7 +222,7 @@ body.theme-neobrutalist-dark .status-dot {
 }
 
 .sketch-btn.active {
-  background-color: #26E9AF; /* Databrush Mint Green */
+  background-color: var(--chart-2); /* Databrush Mint Green */
   color: #000000;
 }
 
@@ -277,7 +241,7 @@ body.theme-neobrutalist-dark #btn-inject-warning {
 }
 
 #btn-inject-warning.active {
-  background-color: #AF4AD4; /* Renoir Purple */
+  background-color: var(--chart-1); /* Renoir Purple */
   color: #ffffff;
 }
 
@@ -341,7 +305,7 @@ input[type=range]::-webkit-slider-thumb {
 
 body.theme-neobrutalist-dark input[type=range]::-webkit-slider-thumb {
   border-color: #000000;
-  background: #26E9AF; /* Databrush green */
+  background: var(--chart-2); /* Databrush green */
 }
 
 /* Layout Content Grid */
@@ -402,7 +366,7 @@ body.theme-neobrutalist-dark input[type=range]::-webkit-slider-thumb {
 .dag-canvas-container {
   position: relative;
   width: 100%;
-  height: 480px;
+  height: 600px;
   background-color: transparent;
   border-radius: 0px;
   margin-bottom: 10px;
@@ -447,12 +411,12 @@ body.theme-neobrutalist-dark input[type=range]::-webkit-slider-thumb {
 }
 
 .connection-path.active {
-  stroke: #AF4AD4; /* Renoir Purple for selected paths in Light mode */
+  stroke: var(--chart-1); /* Renoir Purple for selected paths in Light mode */
   stroke-width: 5px;
 }
 
 body.theme-neobrutalist-dark .connection-path.active {
-  stroke: #26E9AF; /* Databrush Mint Green for selected paths in Dark mode */
+  stroke: var(--chart-2); /* Databrush Mint Green for selected paths in Dark mode */
 }
 
 /* Interactive HTML Nodes */
@@ -518,20 +482,20 @@ body.theme-neobrutalist-dark .dag-node:hover .node-border {
 
 .dag-node.selected .node-border {
   border-width: 4px;
-  border-color: #AF4AD4; /* Renoir Purple border */
+  border-color: var(--chart-1); /* Renoir Purple border */
   box-shadow: 6px 6px 0px #000000;
-  background-color: #26E9AF; /* Databrush Mint Green background */
+  background-color: var(--chart-2); /* Databrush Mint Green background */
 }
 
 body.theme-neobrutalist-dark .dag-node.selected .node-border {
-  border-color: #26E9AF; /* Databrush Green border */
+  border-color: var(--chart-2); /* Databrush Green border */
   background-color: rgba(175, 74, 212, 0.25); /* Renoir Purple tint */
 }
 
 /* Error/Warning node pulse */
 .dag-node.warning .node-border {
   border-color: #000000;
-  background-color: #AF4AD4; /* Warning background Renoir Purple */
+  background-color: var(--chart-1); /* Warning background Renoir Purple */
   box-shadow: 4px 4px 0px #000000;
 }
 
@@ -550,7 +514,7 @@ body.theme-neobrutalist-dark .dag-node.warning .node-border {
 .dag-node.warning:hover .node-border {
   transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0px #000000;
-  background-color: #AF4AD4;
+  background-color: var(--chart-1);
 }
 
 /* Floating Stats Speech Bubbles (Click Trigger Fixed) */
@@ -670,7 +634,7 @@ body.theme-neobrutalist-dark .bubble-border {
 .notebook-badge {
   font-family: var(--font-title);
   font-size: 14px;
-  background-color: #AF4AD4; /* Renoir Purple */
+  background-color: var(--chart-1); /* Renoir Purple */
   color: #ffffff;
   padding: 4px 10px;
   border: 2px solid var(--text-color);
@@ -684,7 +648,7 @@ body.theme-neobrutalist-dark .notebook-badge {
 }
 
 .notebook-badge.node-badge {
-  background-color: #26E9AF; /* Databrush Mint Green */
+  background-color: var(--chart-2); /* Databrush Mint Green */
   color: #000000;
 }
 
@@ -791,7 +755,7 @@ body.theme-neobrutalist-dark .chart-container {
 .log-console {
   border: 2.5px solid var(--text-color);
   background-color: #000000;
-  color: #26E9AF; /* retro terminal green */
+  color: var(--chart-2); /* retro terminal green */
   border-radius: 0px;
   padding: 8px;
   font-family: monospace;
@@ -962,7 +926,7 @@ body.theme-neobrutalist-dark .explainability-header {
   flex: 1;
   border: 3px solid var(--text-color);
   background-color: #000000; /* dark terminal styling */
-  color: #26E9AF; /* Databrush Mint Green text */
+  color: var(--chart-2); /* Databrush Mint Green text */
   padding: 15px;
   font-family: 'Courier New', Courier, monospace;
   font-size: 13px;
@@ -978,7 +942,7 @@ body.theme-neobrutalist-dark .io-box {
 }
 
 .io-box h4 {
-  color: #AF4AD4; /* Renoir Purple headers */
+  color: var(--chart-1); /* Renoir Purple headers */
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 800;
@@ -988,7 +952,7 @@ body.theme-neobrutalist-dark .io-box {
 }
 
 body.theme-neobrutalist-dark .io-box h4 {
-  color: #26E9AF; /* Swap colors in dark mode for better visibility */
+  color: var(--chart-2); /* Swap colors in dark mode for better visibility */
   border-bottom-color: rgba(38, 233, 175, 0.4);
 }
 

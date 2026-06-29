@@ -15,27 +15,41 @@ const canvasState = {
   scale: 1.0
 };
 
+// Detect Language
+const currentLang = document.documentElement.lang || 'en';
+const isIt = currentLang === 'it';
+
 // Pipeline Nodes Configuration
 const nodesConfig = {
   'operazioni-bancarie': {
-    name: 'Operazioni Bancarie',
-    type: 'Source',
-    description: 'Main banking transactions ingestion endpoint. Reads streams from message queues, parses ISO-8583 banking protocols, and emits normalized transaction events.',
+    name: isIt ? 'Operazioni Bancarie' : 'Banking Transactions',
+    type: isIt ? 'Sorgente' : 'Source',
+    description: isIt
+      ? 'Endpoint principale di ingestione delle transazioni bancarie. Legge flussi dalle code di messaggi, analizza i protocolli bancari ISO-8583 ed emette eventi di transazione normalizzati.'
+      : 'Main banking transactions ingestion endpoint. Reads streams from message queues, parses ISO-8583 banking protocols, and emits normalized transaction events.',
     baseMetrics: { throughput: 6.2, latency: 0.1, cpu: 12, mem: 3.2 },
-    customInfo: (metrics) => `<strong>Active Ingestors:</strong> 4 workers<br><strong>Buffer Queue:</strong> 0.2% full`,
+    customInfo: (metrics) => isIt
+      ? `<strong>Ingestori Attivi:</strong> 4 worker<br><strong>Coda Buffer:</strong> 0.2% piena`
+      : `<strong>Active Ingestors:</strong> 4 workers<br><strong>Buffer Queue:</strong> 0.2% full`,
     inputSample: `{\n  "raw_payload": "NjgxMiwxNTAuMDAsMTcxOTMyNDgwMCx1c3JfNDIwMQ==",\n  "channel": "ATM-Gateway-04",\n  "protocol": "ISO-8583"\n}`,
     outputSample: `{\n  "tx_id": "tx_2049182",\n  "user_id": "usr_4201",\n  "amount": 150.00,\n  "timestamp": "2026-06-26T10:45:00Z"\n}`
   },
   'controlli-utente': {
-    name: 'Controlli Utente',
-    type: 'Operator',
-    description: 'Performs verification of user credentials, KYC checks, and risk thresholds.',
+    name: isIt ? 'Controlli Utente' : 'User Verification',
+    type: isIt ? 'Operatore' : 'Operator',
+    description: isIt
+      ? 'Esegue la verifica delle credenziali utente, controlli KYC e soglie di rischio.'
+      : 'Performs verification of user credentials, KYC checks, and risk thresholds.',
     baseMetrics: { throughput: 5.1, latency: 1.8, cpu: 20, mem: 5.0 },
     customInfo: (metrics) => {
       if (simState.isWarningActive) {
-        return `<span style="color:#e03131; font-weight:bold;">⚠️ Alert: Rate Limit exceeded!</span><br><strong>Failure rate:</strong> 4.2%<br><strong>Warning:</strong> Response times spiking.`;
+        return isIt
+          ? `<span style="color:var(--chart-4); font-weight:bold;">⚠️ Allerta: Limite di frequenza superato!</span><br><strong>Tasso di errore:</strong> 4.2%<br><strong>Avviso:</strong> Picco nei tempi di risposta.`
+          : `<span style="color:var(--chart-4); font-weight:bold;">⚠️ Alert: Rate Limit exceeded!</span><br><strong>Failure rate:</strong> 4.2%<br><strong>Warning:</strong> Response times spiking.`;
       }
-      return `<strong>Active Checks:</strong> 12 policies<br><strong>Cache Hit Rate:</strong> 94.2%`;
+      return isIt
+        ? `<strong>Controlli Attivi:</strong> 12 regole<br><strong>Cache Hit Rate:</strong> 94.2%`
+        : `<strong>Active Checks:</strong> 12 policies<br><strong>Cache Hit Rate:</strong> 94.2%`;
     },
     inputSample: `{\n  "tx_id": "tx_2049182",\n  "user_id": "usr_4201",\n  "amount": 150.00,\n  "timestamp": "2026-06-26T10:45:00Z"\n}`,
     outputSample: () => {
@@ -61,32 +75,44 @@ const nodesConfig = {
     }
   },
   'controlli-transazione': {
-    name: 'Controlli Transazione',
-    type: 'Operator',
-    description: 'Evaluates transaction payloads for compliance thresholds, limit checks, and historical daily limits.',
+    name: isIt ? 'Controlli Transazione' : 'Transaction Limits',
+    type: isIt ? 'Operatore' : 'Operator',
+    description: isIt
+      ? 'Valuta i payload delle transazioni rispetto alle soglie di conformità, controlli dei limiti e limiti giornalieri storici.'
+      : 'Evaluates transaction payloads for compliance thresholds, limit checks, and daily historical limit rules.',
     baseMetrics: { throughput: 4.9, latency: 2.2, cpu: 18, mem: 4.8 },
-    customInfo: (metrics) => `<strong>Rule Engine:</strong> Drools v8.1<br><strong>Evaluation Latency:</strong> 1.5ms`,
+    customInfo: (metrics) => isIt
+      ? `<strong>Motore Regole:</strong> Drools v8.1<br><strong>Latenza Valutazione:</strong> 1.5ms`
+      : `<strong>Rule Engine:</strong> Drools v8.1<br><strong>Evaluation Latency:</strong> 1.5ms`,
     inputSample: `{\n  "tx_id": "tx_2049182",\n  "user_id": "usr_4201",\n  "amount": 150.00,\n  "timestamp": "2026-06-26T10:45:00Z"\n}`,
     outputSample: `{\n  "tx_id": "tx_2049182",\n  "user_id": "usr_4201",\n  "amount": 150.00,\n  "timestamp": "2026-06-26T10:45:00Z",\n  "compliance_status": "PASSED",\n  "limit_check": "OK"\n}`
   },
   'salvataggio-audit-pre': {
-    name: 'Salvataggio Audit',
-    type: 'Sink',
-    description: 'Persists raw pre-filtered transaction payloads directly into cold storage audit logs for security history.',
+    name: isIt ? 'Salvataggio Audit' : 'Audit Storage',
+    type: isIt ? 'Destinazione' : 'Sink',
+    description: isIt
+      ? 'Persiste i payload grezzi delle transazioni pre-filtrate direttamente nei log di audit in cold storage per lo storico di sicurezza.'
+      : 'Persists raw pre-filtered transaction payloads directly into cold storage audit logs for security history.',
     baseMetrics: { throughput: 1.1, latency: 12.5, cpu: 15, mem: 2.1 },
-    customInfo: (metrics) => `<strong>Storage Target:</strong> S3 Glacier Backup<br><strong>Write Status:</strong> Acknowledged`,
+    customInfo: (metrics) => isIt
+      ? `<strong>Target Storage:</strong> Backup S3 Glacier<br><strong>Stato Scrittura:</strong> Confermato`
+      : `<strong>Storage Target:</strong> S3 Glacier Backup<br><strong>Write Status:</strong> Acknowledged`,
     inputSample: `{\n  "tx_id": "tx_2049182",\n  "user_id": "usr_4201",\n  "amount": 150.00,\n  "timestamp": "2026-06-26T10:45:00Z"\n}`,
     outputSample: `{\n  "db_status": "SUCCESS",\n  "inserted_rows": 1,\n  "table": "raw_audit_logs",\n  "hash": "8f3b23c21a4f00129bc90812"\n}`
   },
   'accetta-rifiuto': {
-    name: 'Accetta / Rifiuto',
-    type: 'Filter',
-    description: 'Evaluates transaction payload risk metrics and verification status to filter or route payloads.',
+    name: isIt ? 'Accetta / Rifiuto' : 'Accept / Reject',
+    type: isIt ? 'Filtro' : 'Filter',
+    description: isIt
+      ? 'Valuta le metriche di rischio del payload delle transazioni e lo stato di verifica per filtrare o instradare i payload.'
+      : 'Evaluates transaction payload risk metrics and verification status to filter or route payloads.',
     baseMetrics: { throughput: 4.8, latency: 0.5, cpu: 22, mem: 5.1 },
     customInfo: (metrics) => {
       const acceptRate = simState.isWarningActive ? '88%' : '98%';
       const rejectRate = simState.isWarningActive ? '12%' : '2%';
-      return `<strong>Filter Rates:</strong><br><span style="color:#2b8a3e; font-weight:bold;">✔ Accept: ${acceptRate}</span><br><span style="color:#e03131; font-weight:bold;">✖ Reject: ${rejectRate}</span>`;
+      return isIt
+        ? `<strong>Tassi Filtro:</strong><br><span style="color:var(--chart-2); font-weight:bold;">✔ Accetta: ${acceptRate}</span><br><span style="color:var(--chart-4); font-weight:bold;">✖ Rifiuto: ${rejectRate}</span>`
+        : `<strong>Filter Rates:</strong><br><span style="color:var(--chart-2); font-weight:bold;">✔ Accept: ${acceptRate}</span><br><span style="color:var(--chart-4); font-weight:bold;">✖ Reject: ${rejectRate}</span>`;
     },
     inputSample: `{\n  "tx_id": "tx_2049182",\n  "user_verified": true,\n  "risk_score": 0.12,\n  "compliance_status": "PASSED"\n}`,
     outputSample: () => {
@@ -105,20 +131,28 @@ const nodesConfig = {
     }
   },
   'invio-conferma': {
-    name: 'Invio Conferma',
-    type: 'Sink',
-    description: 'Dispatches notifications to users via SMS or Email notifications for successful transactions.',
+    name: isIt ? 'Invio Conferma' : 'Send Notification',
+    type: isIt ? 'Destinazione' : 'Sink',
+    description: isIt
+      ? 'Invia notifiche agli utenti tramite SMS o Email per le transazioni andate a buon fine.'
+      : 'Dispatches notifications to users via SMS or Email notifications for successful transactions.',
     baseMetrics: { throughput: 4.7, latency: 15.2, cpu: 10, mem: 1.8 },
-    customInfo: (metrics) => `<strong>SMTP Gateway:</strong> Connected<br><strong>Queue Size:</strong> 0 messages pending`,
+    customInfo: (metrics) => isIt
+      ? `<strong>SMTP Gateway:</strong> Connesso<br><strong>Dimensione Coda:</strong> 0 messaggi in attesa`
+      : `<strong>SMTP Gateway:</strong> Connected<br><strong>Queue Size:</strong> 0 messages pending`,
     inputSample: `{\n  "tx_id": "tx_2049182",\n  "status": "APPROVED"\n}`,
     outputSample: `{\n  "notification_sent": true,\n  "channel": "SMS",\n  "to": "+39 333 420104",\n  "status": "DELIVERED"\n}`
   },
   'salvataggio-audit-post': {
-    name: 'Salvataggio Audit',
-    type: 'Sink',
-    description: 'Saves filtered and approved ledger items into PostgreSQL db tables for downstream accounting.',
+    name: isIt ? 'Salvataggio Audit' : 'Audit Log Sink',
+    type: isIt ? 'Destinazione' : 'Sink',
+    description: isIt
+      ? 'Salva gli elementi del registro filtrati e approvati nelle tabelle del database PostgreSQL per la contabilità a valle.'
+      : 'Saves filtered and approved ledger items into PostgreSQL db tables for downstream accounting.',
     baseMetrics: { throughput: 4.7, latency: 8.1, cpu: 11, mem: 2.3 },
-    customInfo: (metrics) => `<strong>DB Target:</strong> PostgreSQL Audit Cluster<br><strong>Pool Connections:</strong> 12/20 active`,
+    customInfo: (metrics) => isIt
+      ? `<strong>DB Target:</strong> PostgreSQL Audit Cluster<br><strong>Connessioni Pool:</strong> 12/20 attive`
+      : `<strong>DB Target:</strong> PostgreSQL Audit Cluster<br><strong>Pool Connections:</strong> 12/20 active`,
     inputSample: `{\n  "tx_id": "tx_2049182",\n  "status": "APPROVED"\n}`,
     outputSample: `{\n  "db_status": "SUCCESS",\n  "inserted_rows": 1,\n  "table": "processed_ledger",\n  "ledger_id": "L-908124"\n}`
   }
@@ -126,11 +160,20 @@ const nodesConfig = {
 
 // Global metrics templates
 const globalPipelineConfig = {
-  name: 'Pipeline Statistics',
-  type: 'Global',
-  description: 'Global monitoring parameters for the entire Renoir banking pipeline.',
+  name: isIt ? 'Statistiche Pipeline' : 'Pipeline Statistics',
+  type: isIt ? 'Globale' : 'Global',
+  description: isIt
+    ? 'Parametri di monitoraggio globale per l\'intera pipeline bancaria Renoir.'
+    : 'Global monitoring parameters for the entire Renoir banking pipeline.',
   baseMetrics: { throughput: 3.1, latency: 2.0, cpu: 20, mem: 5.0 },
-  customInfo: (metrics) => `<strong>Active Operators:</strong> 7 nodes<br><strong>Engine Threads:</strong> 16<br><strong>Pipeline Status:</strong> ${simState.isWarningActive ? 'WARNING' : 'HEALTHY'}`
+  customInfo: (metrics) => {
+    const statusText = simState.isWarningActive 
+      ? (isIt ? 'ANOMALIA' : 'WARNING') 
+      : (isIt ? 'FUNZIONANTE' : 'HEALTHY');
+    return isIt
+      ? `<strong>Operatori Attivi:</strong> 7 nodi<br><strong>Thread del Motore:</strong> 16<br><strong>Stato Pipeline:</strong> ${statusText}`
+      : `<strong>Active Operators:</strong> 7 nodes<br><strong>Engine Threads:</strong> 16<br><strong>Pipeline Status:</strong> ${statusText}`;
+  }
 };
 
 // Active runtime metrics values
@@ -157,8 +200,6 @@ function initMetrics() {
 // Generate slight metric fluctuations (random walk)
 function updateMetrics() {
   if (!simState.isRunning) return;
-
-  const warnFactor = simState.isWarningActive ? 1.5 : 1.0;
 
   // 1. Update nodes
   Object.keys(nodesConfig).forEach(id => {
@@ -203,7 +244,9 @@ function updateMetrics() {
     globalMetrics.cpu = Math.min(95, globalPipelineConfig.baseMetrics.cpu * 2.2 + devC);
     // Add event warning occasionally
     if (Math.random() > 0.6) {
-      logToConsole('WARNING: Controlli Utente: Processing rate limit exceeded. Retrying payloads.', 'warn');
+      logToConsole(isIt 
+        ? 'AVVISO: Controlli Utente: Limite della frequenza di elaborazione superato. Riprovo i payload.' 
+        : 'WARNING: User Verification: Processing rate limit exceeded. Retrying payloads.', 'warn');
     }
   } else {
     globalMetrics.latency = Math.max(0.1, globalPipelineConfig.baseMetrics.latency + devL);
@@ -229,8 +272,7 @@ function drawConnections() {
   const viewportRect = viewport.getBoundingClientRect();
   const scale = canvasState.scale;
   
-  // Clear connections and paths, keeping defs if any (we draw on top)
-  // To avoid clearing markers, remove only paths and particles
+  // Clear connections and paths
   const paths = svg.querySelectorAll('.connection-path, .particle-group');
   paths.forEach(p => p.remove());
 
@@ -253,11 +295,11 @@ function drawConnections() {
     const fromRect = fromEl.getBoundingClientRect();
     const toRect = toEl.getBoundingClientRect();
 
-    // From node center-right (normalized to scale-independent viewport coordinates)
+    // From node center-right
     const x1 = (fromRect.right - viewportRect.left) / scale;
     const y1 = (fromRect.top + fromRect.height / 2 - viewportRect.top) / scale;
 
-    // To node center-left (normalized and offset for arrowhead marker size)
+    // To node center-left
     const x2 = (toRect.left - viewportRect.left) / scale - 4;
     const y2 = (toRect.top + toRect.height / 2 - viewportRect.top) / scale;
 
@@ -281,14 +323,10 @@ function drawConnections() {
     
     path.setAttribute('class', `connection-path ${isActive ? 'active' : ''}`);
     
-    // Select marker-end arrow style based on active theme & state
+    // Select marker-end arrow style based on active state
     let markerId = 'arrow-black';
-    const isDark = document.body.classList.contains('theme-neobrutalist-dark');
-    
     if (isActive) {
       markerId = 'arrow-green';
-    } else if (isDark) {
-      markerId = 'arrow-white';
     } else {
       markerId = 'arrow-black';
     }
@@ -298,10 +336,8 @@ function drawConnections() {
 
     // Spawn animated floating bubbles (particles) along the path
     if (simState.isRunning) {
-      // Speed adjustments
       const duration = (2.2 / simState.speedScale).toFixed(1) + 's';
       
-      // We spawn 2 particles along each path, staggered
       for (let i = 0; i < 2; i++) {
         const delay = ((i * 1.1) / simState.speedScale).toFixed(1) + 's';
 
@@ -313,7 +349,7 @@ function drawConnections() {
         bubble.setAttribute('r', '5.5');
         bubble.setAttribute('class', 'particle-bubble');
         if (isActive) {
-          bubble.style.stroke = '#2b8a3e';
+          bubble.style.stroke = 'var(--chart-2)';
           bubble.style.fill = '#ebfbee';
         }
         g.appendChild(bubble);
@@ -360,17 +396,14 @@ function drawSparkline(values) {
   for (let i = 0; i < values.length; i++) {
     const val = values[i];
     const x = padding + i * stepX;
-    // Map value to Y coordinate (0 is top, height is bottom)
     const y = height - padding - ((val - min) / range) * (height - padding * 2);
 
-    // Apply sketchy handdrawn wiggle (wiggle values slightly on X/Y to look handwritten)
     const wiggleX = (Math.random() - 0.5) * 0.8;
     const wiggleY = (Math.random() - 0.5) * 0.8;
 
     if (i === 0) {
       pathD += `M ${x + wiggleX} ${y + wiggleY}`;
     } else {
-      // Use cubic curves for smooth sketchy connections
       const prevVal = values[i - 1];
       const prevX = padding + (i - 1) * stepX;
       const prevY = height - padding - ((prevVal - min) / range) * (height - padding * 2);
@@ -388,9 +421,9 @@ function drawSparkline(values) {
   
   // Set chart stroke color based on status
   if (simState.selectedNode && simState.selectedNode === 'controlli-utente' && simState.isWarningActive) {
-    pathEl.setAttribute('stroke', '#e03131'); // red chart
+    pathEl.setAttribute('stroke', 'var(--chart-4)'); // red warning
   } else {
-    pathEl.setAttribute('stroke', '#2b8a3e'); // green chart
+    pathEl.setAttribute('stroke', 'var(--chart-2)'); // green healthy
   }
 }
 
@@ -408,16 +441,19 @@ function updateFloatingBubbles() {
     if (cEl) cEl.textContent = `${Math.round(metrics.cpu)}%`;
     if (mEl) mEl.textContent = `${metrics.mem.toFixed(1)}Gb`;
 
-    // Handle node-specific custom fields inside bubbles
     const customEl = document.getElementById(`bubble-stat-${id}-custom`);
     if (customEl) {
       if (id === 'accetta-rifiuto') {
         const acceptPct = simState.isWarningActive ? 88 : 98;
         const rejectPct = simState.isWarningActive ? 12 : 2;
-        customEl.innerHTML = `% Filtrati: <span class="bubble-stat">${acceptPct}% Accetta, ${rejectPct}% Rifiuto</span>`;
+        customEl.innerHTML = isIt 
+          ? `% Filtrati: <span class="bubble-stat">${acceptPct}% Accetta, ${rejectPct}% Rifiuto</span>`
+          : `% Filtered: <span class="bubble-stat">${acceptPct}% Accept, ${rejectPct}% Reject</span>`;
       } else if (id === 'controlli-utente') {
         if (simState.isWarningActive) {
-          customEl.innerHTML = `<div class="warning-alert-text">Eventi: Warning Rate Limit!</div>`;
+          customEl.innerHTML = isIt 
+            ? `<div class="warning-alert-text">Warning: Limite Frequenza!</div>`
+            : `<div class="warning-alert-text">Warning: Rate Limit Exceeded!</div>`;
         } else {
           customEl.innerHTML = '';
         }
@@ -441,7 +477,6 @@ function updateInspectorPanel() {
   const selected = simState.selectedNode;
 
   if (selected && nodesConfig[selected]) {
-    // Show selected node details
     const config = nodesConfig[selected];
     const metrics = metricsData[selected];
 
@@ -451,10 +486,14 @@ function updateInspectorPanel() {
 
     // Status mapping
     if (selected === 'controlli-utente' && simState.isWarningActive) {
-      statusEl.innerHTML = '<span style="color:#e03131; font-weight:bold;">⚠️ Warning</span>';
+      statusEl.innerHTML = isIt 
+        ? '<span style="color:var(--chart-4); font-weight:bold;">⚠️ Anomalia</span>'
+        : '<span style="color:var(--chart-4); font-weight:bold;">⚠️ Warning</span>';
       badgeEl.className = 'notebook-badge warning-badge';
     } else {
-      statusEl.innerHTML = '<span style="color:#2b8a3e; font-weight:bold;">✔ Healthy</span>';
+      statusEl.innerHTML = isIt
+        ? '<span style="color:var(--chart-2); font-weight:bold;">✔ Ottimale</span>'
+        : '<span style="color:var(--chart-2); font-weight:bold;">✔ Healthy</span>';
     }
 
     throughputEl.textContent = `${metrics.throughput.toFixed(2)} M/s`;
@@ -462,14 +501,11 @@ function updateInspectorPanel() {
     cpuEl.textContent = `${Math.round(metrics.cpu)}%`;
     memEl.textContent = `${metrics.mem.toFixed(2)} Gb`;
 
-    // Render custom section contents
-    customSectionEl.querySelector('h3').textContent = 'Operator Configuration';
+    customSectionEl.querySelector('h3').textContent = isIt ? 'Configurazione Operatore' : 'Operator Configuration';
     customTextEl.innerHTML = `<p>${config.description}</p><div style="margin-top:10px;">${config.customInfo(metrics)}</div>`;
 
-    // Update Sparkline
     drawSparkline(historyData[selected]);
 
-    // Populate and show explainability card
     const explainCard = document.getElementById('explainability-card');
     if (explainCard) {
       document.getElementById('explain-node-name').textContent = config.name;
@@ -494,10 +530,14 @@ function updateInspectorPanel() {
     badgeEl.className = 'notebook-badge';
 
     if (simState.isWarningActive) {
-      statusEl.innerHTML = '<span style="color:#e03131; font-weight:bold;">⚠️ Degraded</span>';
+      statusEl.innerHTML = isIt
+        ? '<span style="color:var(--chart-4); font-weight:bold;">⚠️ Degradato</span>'
+        : '<span style="color:var(--chart-4); font-weight:bold;">⚠️ Degraded</span>';
       badgeEl.className = 'notebook-badge warning-badge';
     } else {
-      statusEl.innerHTML = '<span style="color:#2b8a3e; font-weight:bold;">✔ Healthy</span>';
+      statusEl.innerHTML = isIt
+        ? '<span style="color:var(--chart-2); font-weight:bold;">✔ Ottimale</span>'
+        : '<span style="color:var(--chart-2); font-weight:bold;">✔ Healthy</span>';
     }
 
     throughputEl.textContent = `${metrics.throughput.toFixed(2)} M/s`;
@@ -505,13 +545,11 @@ function updateInspectorPanel() {
     cpuEl.textContent = `${Math.round(metrics.cpu)}%`;
     memEl.textContent = `${metrics.mem.toFixed(2)} Gb`;
 
-    customSectionEl.querySelector('h3').textContent = 'Topology Info';
+    customSectionEl.querySelector('h3').textContent = isIt ? 'Info Topologia' : 'Topology Info';
     customTextEl.innerHTML = `<p>${globalPipelineConfig.description}</p><div style="margin-top:10px;">${globalPipelineConfig.customInfo(metrics)}</div>`;
 
-    // Update Sparkline
     drawSparkline(historyData['global']);
 
-    // Hide explainability card
     const explainCard = document.getElementById('explainability-card');
     if (explainCard) {
       explainCard.classList.add('hidden');
@@ -535,7 +573,6 @@ function logToConsole(message, type = 'info') {
   consoleEl.appendChild(entry);
   consoleEl.scrollTop = consoleEl.scrollHeight;
 
-  // Cap logs at 30 entries
   while (consoleEl.children.length > 30) {
     consoleEl.removeChild(consoleEl.firstChild);
   }
@@ -547,18 +584,19 @@ function setupNodeSelection() {
   
   nodes.forEach(node => {
     node.addEventListener('click', (e) => {
-      e.stopPropagation(); // prevent background click handler
+      e.stopPropagation();
       
       const nodeId = node.getAttribute('data-node-id');
       
-      // Toggle off if already selected
       if (simState.selectedNode === nodeId) {
         deselectAllNodes();
       } else {
         nodes.forEach(n => n.classList.remove('selected'));
         node.classList.add('selected');
         simState.selectedNode = nodeId;
-        logToConsole(`Selected node: ${nodesConfig[nodeId].name}`);
+        logToConsole(isIt 
+          ? `Operatore selezionato: ${nodesConfig[nodeId].name}` 
+          : `Selected node: ${nodesConfig[nodeId].name}`);
         updateInspectorPanel();
         drawConnections();
       }
@@ -578,13 +616,44 @@ function deselectAllNodes() {
   nodes.forEach(n => n.classList.remove('selected'));
   
   simState.selectedNode = null;
-  logToConsole('Reset selection: viewing entire pipeline topology.');
+  logToConsole(isIt 
+    ? 'Reset selezione: visualizzazione dell\'intera topologia della pipeline.' 
+    : 'Reset selection: viewing entire pipeline topology.');
   updateInspectorPanel();
   drawConnections();
 }
 
-// Connect toolbar controllers
+// Connect controllers (dropdown and actions)
 function setupControls() {
+  // Dropdown Toggle
+  const dropdownToggle = document.getElementById('btn-dropdown-toggle');
+  const dropdownMenu = document.getElementById('controls-dropdown-menu');
+  const dropdownArrow = document.getElementById('dropdown-arrow');
+  
+  if (dropdownToggle && dropdownMenu) {
+    dropdownToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isHidden = dropdownMenu.classList.contains('hidden');
+      if (isHidden) {
+        dropdownMenu.classList.remove('hidden');
+        dropdownToggle.setAttribute('aria-expanded', 'true');
+        if (dropdownArrow) dropdownArrow.style.transform = 'rotate(180deg)';
+      } else {
+        dropdownMenu.classList.add('hidden');
+        dropdownToggle.setAttribute('aria-expanded', 'false');
+        if (dropdownArrow) dropdownArrow.style.transform = '';
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+        dropdownMenu.classList.add('hidden');
+        dropdownToggle.setAttribute('aria-expanded', 'false');
+        if (dropdownArrow) dropdownArrow.style.transform = '';
+      }
+    });
+  }
+
   // Play Pause Toggle
   const btnPlayPause = document.getElementById('btn-play-pause');
   btnPlayPause.addEventListener('click', () => {
@@ -592,15 +661,13 @@ function setupControls() {
     
     if (simState.isRunning) {
       btnPlayPause.classList.add('active');
-      btnPlayPause.innerHTML = '<span class="icon">⏸</span> Pause Sim';
-      logToConsole('Simulation resumed.');
-      // Redraw particles
+      btnPlayPause.innerHTML = isIt ? '<span class="icon">⏸</span> Pausa Sim' : '<span class="icon">⏸</span> Pause Sim';
+      logToConsole(isIt ? 'Simulazione ripresa.' : 'Simulation resumed.');
       drawConnections();
     } else {
       btnPlayPause.classList.remove('active');
-      btnPlayPause.innerHTML = '<span class="icon">▶</span> Resume Sim';
-      logToConsole('Simulation paused.');
-      // Redraw to remove moving particles
+      btnPlayPause.innerHTML = isIt ? '<span class="icon">▶</span> Avvia Sim' : '<span class="icon">▶</span> Resume Sim';
+      logToConsole(isIt ? 'Simulazione in pausa.' : 'Simulation paused.');
       drawConnections();
     }
   });
@@ -614,33 +681,38 @@ function setupControls() {
     simState.isWarningActive = !simState.isWarningActive;
     
     if (simState.isWarningActive) {
-      btnInjectWarning.innerHTML = '<span class="icon">✨</span> Resolve Warning';
+      btnInjectWarning.innerHTML = isIt ? '<span class="icon">✨</span> Risolvi Anomalia' : '<span class="icon">✨</span> Resolve Warning';
       btnInjectWarning.classList.add('active');
-      btnInjectWarning.style.borderColor = '#2b8a3e';
-      btnInjectWarning.style.color = '#2b8a3e';
-      btnInjectWarning.style.boxShadow = '3px 3px 0px #2b8a3e';
+      btnInjectWarning.style.borderColor = 'var(--chart-2)';
+      btnInjectWarning.style.color = 'var(--chart-2)';
+      btnInjectWarning.style.boxShadow = '3px 3px 0px var(--chart-2)';
 
       globalIndicator.className = 'status-indicator-box warning';
-      globalIndicator.querySelector('.status-label').textContent = 'Pipeline: WARNING';
+      globalIndicator.querySelector('.status-label').textContent = isIt ? 'Pipeline: ANOMALIA' : 'Pipeline: WARNING';
       utenteNode.classList.add('warning');
 
-      logToConsole('CRITICAL: Warning injected on Controlli Utente operator.', 'warn');
-      logToConsole('WARNING: Latency threshold exceeded for database verify.', 'warn');
+      logToConsole(isIt 
+        ? 'CRITICO: Anomalia iniettata sull\'operatore Controlli Utente.' 
+        : 'CRITICAL: Warning injected on User Verification operator.', 'warn');
+      logToConsole(isIt 
+        ? 'AVVISO: Soglia di latenza superata per la verifica del database.' 
+        : 'WARNING: Latency threshold exceeded for database verify.', 'warn');
     } else {
-      btnInjectWarning.innerHTML = '<span class="icon">⚠️</span> Inject Warning';
+      btnInjectWarning.innerHTML = isIt ? '<span class="icon">⚠️</span> Inietta Anomalia' : '<span class="icon">⚠️</span> Inject Warning';
       btnInjectWarning.classList.remove('active');
-      btnInjectWarning.style.borderColor = '#e03131';
-      btnInjectWarning.style.color = '#e03131';
-      btnInjectWarning.style.boxShadow = '3px 3px 0px #e03131';
+      btnInjectWarning.style.borderColor = '';
+      btnInjectWarning.style.color = '';
+      btnInjectWarning.style.boxShadow = '';
 
       globalIndicator.className = 'status-indicator-box healthy';
-      globalIndicator.querySelector('.status-label').textContent = 'Pipeline: HEALTHY';
+      globalIndicator.querySelector('.status-label').textContent = isIt ? 'Pipeline: FUNZIONANTE' : 'Pipeline: HEALTHY';
       utenteNode.classList.remove('warning');
 
-      logToConsole('Simulation alerts resolved. System recovering...');
+      logToConsole(isIt 
+        ? 'Allarmi di simulazione risolti. Ripristino del sistema...' 
+        : 'Simulation alerts resolved. System recovering...');
     }
     
-    // Update SVG arrows highlight and sidebar
     updateInspectorPanel();
     drawConnections();
   });
@@ -658,27 +730,8 @@ function setupControls() {
     const val = parseFloat(e.target.value);
     simState.speedScale = val;
     speedVal.textContent = `${val.toFixed(1)}x`;
-    // logToConsole(`Adjusted speed scale factor to ${val.toFixed(1)}x.`);
     drawConnections();
   });
-
-  // Theme Toggle Button (Light/Dark Neobrutalism)
-  const btnThemeToggle = document.getElementById('btn-theme-toggle');
-  if (btnThemeToggle) {
-    btnThemeToggle.addEventListener('click', () => {
-      const isDark = document.body.classList.contains('theme-neobrutalist-dark');
-      if (isDark) {
-        document.body.className = 'theme-neobrutalist';
-        btnThemeToggle.innerHTML = '<span class="icon">🌙</span> Dark Mode';
-        logToConsole('Switched to Neobrutalist Light theme.');
-      } else {
-        document.body.className = 'theme-neobrutalist-dark';
-        btnThemeToggle.innerHTML = '<span class="icon">☀️</span> Light Mode';
-        logToConsole('Switched to Neobrutalist Dark theme.');
-      }
-      drawConnections();
-    });
-  }
 }
 
 // Handle window resizing to recalculate connection curves
@@ -702,9 +755,7 @@ function setupCanvasPanning() {
   let startX = 0;
   let startY = 0;
   
-  // Mouse down - start panning
   container.addEventListener('mousedown', (e) => {
-    // Only drag on empty background space (not on nodes, buttons, inputs)
     if (e.target.closest('.dag-node') || e.target.closest('button') || e.target.closest('input')) {
       return;
     }
@@ -716,7 +767,6 @@ function setupCanvasPanning() {
     e.preventDefault();
   });
   
-  // Mouse move - pan
   window.addEventListener('mousemove', (e) => {
     if (!isPanning) return;
     
@@ -726,7 +776,6 @@ function setupCanvasPanning() {
     updateTransform();
   });
   
-  // Mouse up - stop panning
   window.addEventListener('mouseup', () => {
     if (isPanning) {
       isPanning = false;
@@ -734,7 +783,6 @@ function setupCanvasPanning() {
     }
   });
   
-  // Mouse wheel zoom
   container.addEventListener('wheel', (e) => {
     e.preventDefault();
     const zoomIntensity = 0.05;
@@ -746,11 +794,9 @@ function setupCanvasPanning() {
     }
     
     updateTransform();
-    // Redraw particles to adjust coordinate spacing slightly
     drawConnections();
   }, { passive: false });
   
-  // Reset view on double click
   container.addEventListener('dblclick', (e) => {
     if (e.target.closest('.dag-node')) return;
     canvasState.panX = 0;
@@ -758,7 +804,7 @@ function setupCanvasPanning() {
     canvasState.scale = 1.0;
     updateTransform();
     drawConnections();
-    logToConsole('Reset canvas viewport.');
+    logToConsole(isIt ? 'Reset dell\'inquadratura.' : 'Reset canvas viewport.');
   });
   
   function updateTransform() {
@@ -774,18 +820,17 @@ function init() {
   setupCanvasPanning();
   setupWindowResize();
 
-  // Draw initial connections
-  // Timeout ensures container has correct sizing layout first
   setTimeout(() => {
     drawConnections();
   }, 100);
 
-  // Set running timer ticker
   simState.tickInterval = setInterval(() => {
     updateMetrics();
   }, 1000);
 
-  logToConsole('Welcome to the Renoir pipeline monitor mockup!');
+  logToConsole(isIt 
+    ? 'Benvenuto nel monitor di pipeline Renoir!' 
+    : 'Welcome to the Renoir pipeline monitor mockup!');
 }
 
 document.addEventListener('DOMContentLoaded', init);
