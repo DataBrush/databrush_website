@@ -294,5 +294,6 @@
   "db_scenario_sub": "// Select a Renoir pipeline demo",
   "db_scenario_financial": "Financial Audit",
   "db_scenario_iot": "IoT Smart Factory",
-  "db_scenario_cdn": "CDN Web Analytics"
+  "db_scenario_cdn": "CDN Web Analytics",
+  "db_operator_code": "Renoir Operator Implementation (Rust)"
 }

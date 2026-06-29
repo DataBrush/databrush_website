@@ -6,7 +6,9 @@ const simState = {
   selectedNode: null, // null means overall pipeline
   tickInterval: null,
   historyLength: 20,
-  currentScenario: 'financial'
+  currentScenario: 'financial',
+  lastRenderedNode: undefined,
+  lastRenderedWarning: undefined
 };
 
 // Canvas Pan & Zoom State
@@ -32,51 +34,86 @@ const historyData = {
 let nodesConfig = {};
 let globalPipelineConfig = {};
 
+// Simple syntax-highlighter function for Rust code snippets
+function highlightRustCode(code) {
+  // Escape HTML first
+  let escaped = code
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt bridge;"); // Let's correct this escaping to match standard entity logic
+
+  // Restore simple escape logic
+  escaped = code
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  // Single-pass regex with alternation to prevent keyword matching inside strings/comments
+  const regex = /(\/\/.*)|("[^"]*")|\b(let|mut|fn|struct|impl|use|pub|return|match|if|else|true|false)\b|\b(StreamContext|CountWindow|TumblingWindow|Replication|SessionWindow|Duration|Time|String|u64|usize|Option|Result|Ok|Err|Some|None|S3Sink|SmsNotificationSink|PostgresSink|SqliteSink|PagerDutyWebhookSink|TimescaleDbSink|ParquetIcebergSink|RedisLiveCounterSink)\b|(?:\.(map|filter|window_all|reduce|flat_map|sink|add_timestamps|execute_blocking|execute|stream_kafka|stream_iter|stream_channel|group_by|split))\b/g;
+
+  return escaped.replace(regex, (match, comment, string, keyword, type, method) => {
+    if (comment) return `<span style="color: #9ca3af; font-style: italic;">${comment}</span>`;
+    if (string) return `<span style="color: var(--chart-3); font-weight: bold;">${string}</span>`;
+    if (keyword) return `<span style="color: var(--chart-4); font-weight: bold;">${keyword}</span>`;
+    if (type) return `<span style="color: var(--chart-1); font-weight: bold;">${type}</span>`;
+    if (method) return `.<span style="color: #60a5fa; font-weight: bold;">${method}</span>`;
+    return match;
+  });
+}
+
 // Scenario configurations
 const scenarios = {
   financial: {
-    name: isIt ? 'Audit Finanziario' : 'Financial Audit',
+    name: isIt ? "Audit Finanziario" : "Financial Audit",
     globalDescription: isIt
-      ? 'Analisi delle transazioni in tempo reale, controllo KYC e monitoraggio delle regole di conformità.'
-      : 'Real-time transaction auditing, KYC checks, and compliance rules enforcement.',
+      ? "Analisi delle transazioni in tempo reale, controllo KYC e monitoraggio delle regole di conformità."
+      : "Real-time transaction auditing, KYC checks, and compliance rules enforcement.",
     baseMetrics: { throughput: 3.1, latency: 2.0, cpu: 20, mem: 5.0 },
-    anomalyNodeId: 'user-verification',
-    warningAffects: ['limit-checks'],
+    anomalyNodeId: "user-verification",
+    warningAffects: ["limit-checks"],
     anomalyLogMessages: [
-      isIt ? 'AVVISO: Controlli Utente: Limite della frequenza di elaborazione superato. Riprovo i payload.' : 'WARNING: User Verification: Processing rate limit exceeded. Retrying payloads.',
-      isIt ? 'AVVISO: Soglia di latenza superata per la verifica del database.' : 'WARNING: Latency threshold exceeded for database verify.'
+      isIt
+        ? "AVVISO: Controlli Utente: Limite della frequenza di elaborazione superato. Riprovo i payload."
+        : "WARNING: User Verification: Processing rate limit exceeded. Retrying payloads.",
+      isIt
+        ? "AVVISO: Soglia di latenza superata per la verifica del database."
+        : "WARNING: Latency threshold exceeded for database verify.",
     ],
     links: [
-      { from: 'financial-source', to: 'user-verification' },
-      { from: 'financial-source', to: 'limit-checks' },
-      { from: 'financial-source', to: 'pre-audit-sink' },
-      { from: 'user-verification', to: 'decision-filter' },
-      { from: 'limit-checks', to: 'decision-filter' },
-      { from: 'decision-filter', to: 'notification-sink' },
-      { from: 'decision-filter', to: 'post-audit-sink' }
+      { from: "financial-source", to: "user-verification" },
+      { from: "financial-source", to: "limit-checks" },
+      { from: "financial-source", to: "pre-audit-sink" },
+      { from: "user-verification", to: "decision-filter" },
+      { from: "limit-checks", to: "decision-filter" },
+      { from: "decision-filter", to: "notification-sink" },
+      { from: "decision-filter", to: "post-audit-sink" },
     ],
     nodes: {
-      'financial-source': {
-        name: isIt ? 'Operazioni Bancarie' : 'Banking Transactions',
-        type: isIt ? 'Sorgente' : 'Source',
-        left: '6%', top: '50%',
+      "financial-source": {
+        name: isIt ? "Operazioni Bancarie" : "Banking Transactions",
+        type: isIt ? "Sorgente" : "Source",
+        left: "6%",
+        top: "50%",
         description: isIt
-          ? 'Endpoint principale di ingestione delle transazioni bancarie. Legge flussi dalle code di messaggi, analizza i protocolli bancari ISO-8583 ed emette eventi di transazione normalizzati.'
-          : 'Main banking transactions ingestion endpoint. Reads streams from message queues, parses ISO-8583 banking protocols, and emits normalized transaction events.',
+          ? "Endpoint principale di ingestione delle transazioni bancarie. Legge flussi dalle code di messaggi, analizza i protocolli bancari ISO-8583 ed emette eventi di transazione normalizzati."
+          : "Main banking transactions ingestion endpoint. Reads streams from message queues, parses ISO-8583 banking protocols, and emits normalized transaction events.",
         baseMetrics: { throughput: 6.2, latency: 0.1, cpu: 12, mem: 3.2 },
-        customInfo: (metrics) => isIt
-          ? `<strong>Ingestori Attivi:</strong> 4 worker<br><strong>Coda Buffer:</strong> 0.2% piena`
-          : `<strong>Active Ingestors:</strong> 4 workers<br><strong>Buffer Queue:</strong> 0.2% full`,
+        customInfo: (metrics) =>
+          isIt
+            ? `<strong>Ingestori Attivi:</strong> 4 worker<br><strong>Coda Buffer:</strong> 0.2% piena`
+            : `<strong>Active Ingestors:</strong> 4 workers<br><strong>Buffer Queue:</strong> 0.2% full`,
         inputSample: `{\n  "raw_payload": "NjgxMiwxNTAuMDAsMTcxOTMyNDgwMCx1c3JfNDIwMQ==",\n  "channel": "ATM-Gateway-04",\n  "protocol": "ISO-8583"\n}`,
-        outputSample: `{\n  "tx_id": "tx_2049182",\n  "user_id": "usr_4201",\n  "amount": 150.00,\n  "timestamp": "2026-06-26T10:45:00Z"\n}`
+        outputSample: `{\n  "tx_id": "tx_2049182",\n  "user_id": "usr_4201",\n  "amount": 150.00,\n  "timestamp": "2026-06-26T10:45:00Z"\n}`,
+        rustCode: `// Configure context and consume Kafka ISO-8583 stream\nlet ctx = StreamContext::new(config);\nlet stream = ctx.stream_kafka(kafka_conf, &["transactions"], Replication::Unlimited).split(3);`,
       },
-      'user-verification': {
-        name: isIt ? 'Controlli Utente' : 'User Verification',
-        type: isIt ? 'Operatore' : 'Operator',
-        left: '35%', top: '20%',
+      "user-verification": {
+        name: isIt ? "Controlli Utente" : "User Verification",
+        type: isIt ? "Operatore" : "Operator",
+        left: "35%",
+        top: "20%",
         description: isIt
-          ? 'Esegue la verifica delle credenziali utente, controlli KYC e soglie di rischio.'
-          : 'Performs verification of user credentials, KYC checks, and risk thresholds.',
+          ? "Esegue la verifica delle credenziali utente, controlli KYC e soglie di rischio."
+          : "Performs verification of user credentials, KYC checks, and risk thresholds.",
         baseMetrics: { throughput: 5.1, latency: 1.8, cpu: 20, mem: 5.0 },
         customInfo: (metrics) => {
           if (simState.isWarningActive) {
@@ -90,74 +127,90 @@ const scenarios = {
         },
         customBubble: (metrics) => {
           if (simState.isWarningActive) {
-            return isIt 
+            return isIt
               ? `<div class="warning-alert-text">Warning: Limite Frequenza!</div>`
               : `<div class="warning-alert-text">Warning: Rate Limit Exceeded!</div>`;
           }
-          return '';
+          return "";
         },
         inputSample: `{\n  "tx_id": "tx_2049182",\n  "user_id": "usr_4201",\n  "amount": 150.00,\n  "timestamp": "2026-06-26T10:45:00Z"\n}`,
         outputSample: () => {
           if (simState.isWarningActive) {
-            return JSON.stringify({
-              "tx_id": "tx_2049182",
-              "user_id": "usr_4201",
-              "amount": 150.00,
-              "timestamp": "2026-06-26T10:45:00Z",
-              "user_verified": true,
-              "risk_score": 0.94,
-              "warnings": ["RATE_LIMIT_EXCEEDED"]
-            }, null, 2);
+            return JSON.stringify(
+              {
+                tx_id: "tx_2049182",
+                user_id: "usr_4201",
+                amount: 150.0,
+                timestamp: "2026-06-26T10:45:00Z",
+                user_verified: true,
+                risk_score: 0.94,
+                warnings: ["RATE_LIMIT_EXCEEDED"],
+              },
+              null,
+              2,
+            );
           }
-          return JSON.stringify({
-            "tx_id": "tx_2049182",
-            "user_id": "usr_4201",
-            "amount": 150.00,
-            "timestamp": "2026-06-26T10:45:00Z",
-            "user_verified": true,
-            "risk_score": 0.12
-          }, null, 2);
-        }
+          return JSON.stringify(
+            {
+              tx_id: "tx_2049182",
+              user_id: "usr_4201",
+              amount: 150.0,
+              timestamp: "2026-06-26T10:45:00Z",
+              user_verified: true,
+              risk_score: 0.12,
+            },
+            null,
+            2,
+          );
+        },
+        rustCode: `// Filter out transactions exceeding credentials or risk limits\nlet verified = stream.filter_map(|tx| {\n    let is_valid = verify_user_credentials(tx.user_id);\n    if is_valid && tx.risk_score < 0.8 {\n        Some(tx)\n    } else {\n        None\n    }\n});`,
       },
-      'limit-checks': {
-        name: isIt ? 'Controlli Transazione' : 'Transaction Limits',
-        type: isIt ? 'Operatore' : 'Operator',
-        left: '35%', top: '50%',
+      "limit-checks": {
+        name: isIt ? "Controlli Transazione" : "Transaction Limits",
+        type: isIt ? "Operatore" : "Operator",
+        left: "35%",
+        top: "50%",
         description: isIt
-          ? 'Valuta i payload delle transazioni rispetto alle soglie di conformità, controlli dei limiti e limiti giornalieri storici.'
-          : 'Evaluates transaction payloads for compliance thresholds, limit checks, and daily historical limit rules.',
+          ? "Valuta i payload delle transazioni rispetto alle soglie di conformità, controlli dei limiti e limiti giornalieri storici."
+          : "Evaluates transaction payloads for compliance thresholds, limit checks, and daily historical limit rules.",
         baseMetrics: { throughput: 4.9, latency: 2.2, cpu: 18, mem: 4.8 },
-        customInfo: (metrics) => isIt
-          ? `<strong>Motore Regole:</strong> Drools v8.1<br><strong>Latenza Valutazione:</strong> 1.5ms`
-          : `<strong>Rule Engine:</strong> Drools v8.1<br><strong>Evaluation Latency:</strong> 1.5ms`,
+        customInfo: (metrics) =>
+          isIt
+            ? `<strong>Motore Regole:</strong> Drools v8.1<br><strong>Latenza Valutazione:</strong> 1.5ms`
+            : `<strong>Rule Engine:</strong> Drools v8.1<br><strong>Evaluation Latency:</strong> 1.5ms`,
         inputSample: `{\n  "tx_id": "tx_2049182",\n  "user_id": "usr_4201",\n  "amount": 150.00,\n  "timestamp": "2026-06-26T10:45:00Z"\n}`,
-        outputSample: `{\n  "tx_id": "tx_2049182",\n  "user_id": "usr_4201",\n  "amount": 150.00,\n  "timestamp": "2026-06-26T10:45:00Z",\n  "compliance_status": "PASSED",\n  "limit_check": "OK"\n}`
+        outputSample: `{\n  "tx_id": "tx_2049182",\n  "user_id": "usr_4201",\n  "amount": 150.00,\n  "timestamp": "2026-06-26T10:45:00Z",\n  "compliance_status": "PASSED",\n  "limit_check": "OK"\n}`,
+        rustCode: `// Map elements to calculate rolling compliance evaluation\nlet checked = stream.map(|tx| {\n    let limits = load_daily_limits(tx.user_id);\n    tx.evaluate_compliance(&limits)\n});`,
       },
-      'pre-audit-sink': {
-        name: isIt ? 'Salvataggio Audit' : 'Audit Storage',
-        type: isIt ? 'Destinazione' : 'Sink',
-        left: '35%', top: '80%',
+      "pre-audit-sink": {
+        name: isIt ? "Salvataggio Audit" : "Audit Storage",
+        type: isIt ? "Destinazione" : "Sink",
+        left: "35%",
+        top: "80%",
         description: isIt
-          ? 'Persiste i payload grezzi delle transazioni pre-filtrate direttamente nei log di audit in cold storage per lo storico di sicurezza.'
-          : 'Persists raw pre-filtered transaction payloads directly into cold storage audit logs for security history.',
+          ? "Persiste i payload grezzi delle transazioni pre-filtrate direttamente nei log di audit in cold storage per lo storico di sicurezza."
+          : "Persists raw pre-filtered transaction payloads directly into cold storage audit logs for security history.",
         baseMetrics: { throughput: 1.1, latency: 12.5, cpu: 15, mem: 2.1 },
-        customInfo: (metrics) => isIt
-          ? `<strong>Target Storage:</strong> Backup S3 Glacier<br><strong>Stato Scrittura:</strong> Confermato`
-          : `<strong>Storage Target:</strong> S3 Glacier Backup<br><strong>Write Status:</strong> Acknowledged`,
+        customInfo: (metrics) =>
+          isIt
+            ? `<strong>Target Storage:</strong> Backup S3 Glacier<br><strong>Stato Scrittura:</strong> Confermato`
+            : `<strong>Storage Target:</strong> S3 Glacier Backup<br><strong>Write Status:</strong> Acknowledged`,
         inputSample: `{\n  "tx_id": "tx_2049182",\n  "user_id": "usr_4201",\n  "amount": 150.00,\n  "timestamp": "2026-06-26T10:45:00Z"\n}`,
-        outputSample: `{\n  "db_status": "SUCCESS",\n  "inserted_rows": 1,\n  "table": "raw_audit_logs",\n  "hash": "8f3b23c21a4f00129bc90812"\n}`
+        outputSample: `{\n  "db_status": "SUCCESS",\n  "inserted_rows": 1,\n  "table": "raw_audit_logs",\n  "hash": "8f3b23c21a4f00129bc90812"\n}`,
+        rustCode: `// Persist raw elements directly into kafka \nstream.kafka_sink(producer, "audit_topic");`,
       },
-      'decision-filter': {
-        name: isIt ? 'Accetta / Rifiuto' : 'Accept / Reject',
-        type: isIt ? 'Filtro' : 'Filter',
-        left: '65%', top: '50%',
+      "decision-filter": {
+        name: isIt ? "Accetta / Rifiuto" : "Accept / Reject",
+        type: isIt ? "Filtro" : "Filter",
+        left: "65%",
+        top: "50%",
         description: isIt
-          ? 'Valuta le metriche di rischio del payload delle transazioni e lo stato di verifica per filtrare o instradare i payload.'
-          : 'Evaluates transaction payload risk metrics and verification status to filter or route payloads.',
+          ? "Valuta le metriche di rischio del payload delle transazioni e lo stato di verifica per filtrare o instradare i payload."
+          : "Evaluates transaction payload risk metrics and verification status to filter or route payloads.",
         baseMetrics: { throughput: 4.8, latency: 0.5, cpu: 22, mem: 5.1 },
         customInfo: (metrics) => {
-          const acceptRate = simState.isWarningActive ? '88%' : '98%';
-          const rejectRate = simState.isWarningActive ? '12%' : '2%';
+          const acceptRate = simState.isWarningActive ? "88%" : "98%";
+          const rejectRate = simState.isWarningActive ? "12%" : "2%";
           return isIt
             ? `<strong>Tassi Filtro:</strong><br><span style="color:var(--chart-2); font-weight:bold;">✔ Accetta: ${acceptRate}</span><br><span style="color:var(--chart-4); font-weight:bold;">✖ Rifiuto: ${rejectRate}</span>`
             : `<strong>Filter Rates:</strong><br><span style="color:var(--chart-2); font-weight:bold;">✔ Accept: ${acceptRate}</span><br><span style="color:var(--chart-4); font-weight:bold;">✖ Reject: ${rejectRate}</span>`;
@@ -165,125 +218,154 @@ const scenarios = {
         customBubble: (metrics) => {
           const acceptPct = simState.isWarningActive ? 88 : 98;
           const rejectPct = simState.isWarningActive ? 12 : 2;
-          return isIt 
+          return isIt
             ? `% Filtrati: <span class="bubble-stat">${acceptPct}% Accetta, ${rejectPct}% Rifiuto</span>`
             : `% Filtered: <span class="bubble-stat">${acceptPct}% Accept, ${rejectPct}% Reject</span>`;
         },
         inputSample: `{\n  "tx_id": "tx_2049182",\n  "user_verified": true,\n  "risk_score": 0.12,\n  "compliance_status": "PASSED"\n}`,
         outputSample: () => {
           if (simState.isWarningActive) {
-            return JSON.stringify({
-              "tx_id": "tx_2049182",
-              "status": "REJECTED",
-              "reason": "RISK_SCORE_THRESHOLD_EXCEEDED"
-            }, null, 2);
+            return JSON.stringify(
+              {
+                tx_id: "tx_2049182",
+                status: "REJECTED",
+                reason: "RISK_SCORE_THRESHOLD_EXCEEDED",
+              },
+              null,
+              2,
+            );
           }
-          return JSON.stringify({
-            "tx_id": "tx_2049182",
-            "status": "APPROVED",
-            "routing_target": "POST_PROCESSING"
-          }, null, 2);
-        }
+          return JSON.stringify(
+            {
+              tx_id: "tx_2049182",
+              status: "APPROVED",
+              routing_target: "POST_PROCESSING",
+            },
+            null,
+            2,
+          );
+        },
+        rustCode: `// Filter the element based on approval status and split in 2 streams\nlet approved = checked.join(is_valid).filter_map(|tx| { check_tx(tx); if tx.status == "APPROVED" { Some(tx) } else { None } }).split(2);`,
       },
-      'notification-sink': {
-        name: isIt ? 'Invio Conferma' : 'Send Notification',
-        type: isIt ? 'Destinazione' : 'Sink',
-        left: '92%', top: '35%',
+      "notification-sink": {
+        name: isIt ? "Invio Conferma" : "Send Notification",
+        type: isIt ? "Destinazione" : "Sink",
+        left: "92%",
+        top: "35%",
         description: isIt
-          ? 'Invia notifiche agli utenti tramite SMS o Email per le transazioni andate a buon fine.'
-          : 'Dispatches notifications to users via SMS or Email notifications for successful transactions.',
+          ? "Invia notifiche agli utenti tramite SMS o Email per le transazioni andate a buon fine."
+          : "Dispatches notifications to users via SMS or Email notifications for successful transactions.",
         baseMetrics: { throughput: 4.7, latency: 15.2, cpu: 10, mem: 1.8 },
-        customInfo: (metrics) => isIt
-          ? `<strong>SMTP Gateway:</strong> Connesso<br><strong>Dimensione Coda:</strong> 0 messaggi in attesa`
-          : `<strong>SMTP Gateway:</strong> Connected<br><strong>Queue Size:</strong> 0 messages pending`,
+        customInfo: (metrics) =>
+          isIt
+            ? `<strong>SMTP Gateway:</strong> Connesso<br><strong>Dimensione Coda:</strong> 0 messaggi in attesa`
+            : `<strong>SMTP Gateway:</strong> Connected<br><strong>Queue Size:</strong> 0 messages pending`,
         inputSample: `{\n  "tx_id": "tx_2049182",\n  "status": "APPROVED"\n}`,
-        outputSample: `{\n  "notification_sent": true,\n  "channel": "SMS",\n  "to": "+39 333 420104",\n  "status": "DELIVERED"\n}`
+        outputSample: `{\n  "notification_sent": true,\n  "channel": "SMS",\n  "to": "+39 333 420104",\n  "status": "DELIVERED"\n}`,
+        rustCode: `// Dispatch approved notifications via SMS sink\napproved.sink(SmsNotificationSink::new());`,
       },
-      'post-audit-sink': {
-        name: isIt ? 'Salvataggio Audit' : 'Audit Log Sink',
-        type: isIt ? 'Destinazione' : 'Sink',
-        left: '92%', top: '65%',
+      "post-audit-sink": {
+        name: isIt ? "Salvataggio Audit" : "Audit Log Sink",
+        type: isIt ? "Destinazione" : "Sink",
+        left: "92%",
+        top: "65%",
         description: isIt
-          ? 'Salva gli elementi del registro filtrati e approvati nelle tabelle del database PostgreSQL per la contabilità a valle.'
-          : 'Saves filtered and approved ledger items into PostgreSQL db tables for downstream accounting.',
+          ? "Salva gli elementi del registro filtrati e approvati nelle tabelle del database PostgreSQL per la contabilità a valle."
+          : "Saves filtered and approved ledger items into PostgreSQL db tables for downstream accounting.",
         baseMetrics: { throughput: 4.7, latency: 8.1, cpu: 11, mem: 2.3 },
-        customInfo: (metrics) => isIt
-          ? `<strong>DB Target:</strong> PostgreSQL Audit Cluster<br><strong>Connessioni Pool:</strong> 12/20 attive`
-          : `<strong>DB Target:</strong> PostgreSQL Audit Cluster<br><strong>Pool Connections:</strong> 12/20 active`,
+        customInfo: (metrics) =>
+          isIt
+            ? `<strong>DB Target:</strong> PostgreSQL Audit Cluster<br><strong>Connessioni Pool:</strong> 12/20 attive`
+            : `<strong>DB Target:</strong> PostgreSQL Audit Cluster<br><strong>Pool Connections:</strong> 12/20 active`,
         inputSample: `{\n  "tx_id": "tx_2049182",\n  "status": "APPROVED"\n}`,
-        outputSample: `{\n  "db_status": "SUCCESS",\n  "inserted_rows": 1,\n  "table": "processed_ledger",\n  "ledger_id": "L-908124"\n}`
-      }
-    }
+        outputSample: `{\n  "db_status": "SUCCESS",\n  "inserted_rows": 1,\n  "table": "processed_ledger",\n  "ledger_id": "L-908124"\n}`,
+        rustCode: `// Write finalized records to relational DB store\napproved.sink(PostgresSink::new("postgres_ledger"));`,
+      },
+    },
   },
   iot: {
-    name: isIt ? 'Telemetria IoT Fleet' : 'IoT Fleet Telemetry',
+    name: isIt ? "Telemetria IoT Fleet" : "IoT Fleet Telemetry",
     globalDescription: isIt
-      ? 'Monitoraggio sensori industriali, aggregazione in tempo reale tramite finestre temporali e rilevamento anomalie.'
-      : 'Industrial sensor monitoring, real-time aggregation via tumbling windows, and anomaly filtering.',
+      ? "Monitoraggio sensori industriali, aggregazione in tempo reale tramite finestre temporali e rilevamento anomalie."
+      : "Industrial sensor monitoring, real-time aggregation via tumbling windows, and anomaly filtering.",
     baseMetrics: { throughput: 14.5, latency: 1.2, cpu: 25, mem: 4.2 },
-    anomalyNodeId: 'anomaly-detect',
-    warningAffects: ['alert-dispatcher'],
+    anomalyNodeId: "anomaly-detect",
+    warningAffects: ["alert-dispatcher"],
     anomalyLogMessages: [
-      isIt ? 'AVVISO: Filtro Anomalie: Rilevato picco di temperatura insolito su sensor_08b (82.4°C).' : 'WARNING: Anomaly Filter: Unusual temperature spike detected on sensor_08b (82.4C).',
-      isIt ? 'AVVISO: Dispatcher Allarmi: Invio notifica di criticità manutenzione a PagerDuty.' : 'WARNING: Alert Dispatcher: Dispatched critical maintenance alert to PagerDuty.'
+      isIt
+        ? "AVVISO: Filtro Anomalie: Rilevato picco di temperatura insolito su sensor_08b (82.4°C)."
+        : "WARNING: Anomaly Filter: Unusual temperature spike detected on sensor_08b (82.4C).",
+      isIt
+        ? "AVVISO: Dispatcher Allarmi: Invio notifica di criticità manutenzione a PagerDuty."
+        : "WARNING: Alert Dispatcher: Dispatched critical maintenance alert to PagerDuty.",
     ],
     links: [
-      { from: 'iot-source', to: 'window-agg' },
-      { from: 'iot-source', to: 'edge-storage' },
-      { from: 'window-agg', to: 'anomaly-detect' },
-      { from: 'anomaly-detect', to: 'alert-dispatcher' },
-      { from: 'anomaly-detect', to: 'metrics-sink' }
+      { from: "iot-source", to: "window-agg" },
+      { from: "iot-source", to: "edge-storage" },
+      { from: "window-agg", to: "anomaly-detect" },
+      { from: "anomaly-detect", to: "alert-dispatcher" },
+      { from: "anomaly-detect", to: "metrics-sink" },
     ],
     nodes: {
-      'iot-source': {
-        name: isIt ? 'Flusso Telemetria' : 'Telemetry Stream',
-        type: isIt ? 'Sorgente' : 'Source',
-        left: '6%', top: '50%',
+      "iot-source": {
+        name: isIt ? "Flusso Telemetria" : "Telemetry Stream",
+        type: isIt ? "Sorgente" : "Source",
+        left: "6%",
+        top: "50%",
         description: isIt
-          ? 'Legge flussi MQTT/Kafka ad alta frequenza emessi da migliaia di sensori distribuiti su macchine e motori della fabbrica.'
-          : 'Consumes high-frequency MQTT/Kafka telemetry streams emitted from thousands of sensors on factory machinery.',
+          ? "Legge flussi MQTT/Kafka ad alta frequenza emessi da migliaia di sensori distribuiti su macchine e motori della fabbrica."
+          : "Consumes high-frequency MQTT/Kafka telemetry streams emitted from thousands of sensors on factory machinery.",
         baseMetrics: { throughput: 28.4, latency: 0.05, cpu: 15, mem: 2.8 },
-        customInfo: (metrics) => isIt
-          ? `<strong>Sensori Attivi:</strong> 1,240 dispositivi<br><strong>Buffer Coda Edge:</strong> In salute`
-          : `<strong>Active Sensors:</strong> 1,240 devices<br><strong>Edge Buffer:</strong> Healthy`,
+        customInfo: (metrics) =>
+          isIt
+            ? `<strong>Sensori Attivi:</strong> 1,240 dispositivi<br><strong>Buffer Coda Edge:</strong> In salute`
+            : `<strong>Active Sensors:</strong> 1,240 devices<br><strong>Edge Buffer:</strong> Healthy`,
         inputSample: `{\n  "sensor_id": "sensor_08b",\n  "metric": "temp_c",\n  "value": 82.4,\n  "ts": 1719324810\n}`,
-        outputSample: `{\n  "sensor_id": "sensor_08b",\n  "type": "TEMP",\n  "reading": 82.4,\n  "timestamp": "2026-06-29T14:13:30Z"\n}`
+        outputSample: `{\n  "sensor_id": "sensor_08b",\n  "type": "TEMP",\n  "reading": 82.4,\n  "timestamp": "2026-06-29T14:13:30Z"\n}`,
+        rustCode: `// Listen to IoT Kafka sensor telemetry\nlet ctx = StreamContext::new(config);\nlet telemetry = ctx.stream_kafka(kafka_conf, &["iot-metrics"], Replication::Unlimited).split(2);`,
       },
-      'window-agg': {
-        name: isIt ? 'Finestra Temporale' : 'Tumbling Window',
-        type: isIt ? 'Operatore' : 'Operator',
-        left: '35%', top: '30%',
+      "window-agg": {
+        name: isIt ? "Finestra Temporale" : "Tumbling Window",
+        type: isIt ? "Operatore" : "Operator",
+        left: "35%",
+        top: "30%",
         description: isIt
-          ? 'Raggruppa le misurazioni dei sensori in finestre temporali di 10 secondi calcolando medie correnti e riducendo il rumore.'
-          : 'Groups telemetry measurements into 10-second tumbling windows to compute rolling averages and reduce data noise.',
+          ? "Raggruppa le misurazioni dei sensori in finestre temporali di 10 secondi calcolando medie correnti e riducendo il rumore."
+          : "Groups telemetry measurements into 10-second tumbling windows to compute rolling averages and reduce data noise.",
         baseMetrics: { throughput: 25.1, latency: 1.1, cpu: 22, mem: 4.8 },
-        customInfo: (metrics) => isIt
-          ? `<strong>Durata Finestra:</strong> 10s (Tumbling)<br><strong>Funzione di Riduzione:</strong> Media Statistica`
-          : `<strong>Window Duration:</strong> 10s (Tumbling)<br><strong>Reduction Fn:</strong> Statistical Average`,
+        customInfo: (metrics) =>
+          isIt
+            ? `<strong>Durata Finestra:</strong> 10s (Tumbling)<br><strong>Funzione di Riduzione:</strong> Media Statistica`
+            : `<strong>Window Duration:</strong> 10s (Tumbling)<br><strong>Reduction Fn:</strong> Statistical Average`,
         inputSample: `{\n  "sensor_id": "sensor_08b",\n  "reading": 82.4,\n  "timestamp": "2026-06-29T14:13:30Z"\n}`,
-        outputSample: `{\n  "window_start": 1719324800,\n  "window_end": 1719324810,\n  "sensor_id": "sensor_08b",\n  "avg_value": 81.9,\n  "max_value": 82.4,\n  "data_points": 120\n}`
+        outputSample: `{\n  "window_start": 1719324800,\n  "window_end": 1719324810,\n  "sensor_id": "sensor_08b",\n  "avg_value": 81.9,\n  "max_value": 82.4,\n  "data_points": 120\n}`,
+        rustCode: `// Group metrics into 10-second tumbling windows and reduce\nlet aggregated = telemetry\n    .window_all(CountWindow::tumbling(10))\n    .reduce(|a, b| a.combine_averages(b));`,
       },
-      'edge-storage': {
-        name: isIt ? 'Cache Locale' : 'Local Cache',
-        type: isIt ? 'Destinazione' : 'Sink',
-        left: '35%', top: '70%',
+      "edge-storage": {
+        name: isIt ? "Cache Locale" : "Local Cache",
+        type: isIt ? "Destinazione" : "Sink",
+        left: "35%",
+        top: "70%",
         description: isIt
-          ? 'Salva i flussi grezzi di telemetria ad alta risoluzione in database locali all\'Edge per scopi diagnostici e di ripristino rapido.'
-          : 'Persists raw high-resolution telemetry locally on disk at the Edge for debugging and historical data replay.',
+          ? "Salva i flussi grezzi di telemetria ad alta risoluzione in database locali all'Edge per scopi diagnostici e di ripristino rapido."
+          : "Persists raw high-resolution telemetry locally on disk at the Edge for debugging and historical data replay.",
         baseMetrics: { throughput: 3.3, latency: 6.8, cpu: 8, mem: 1.9 },
-        customInfo: (metrics) => isIt
-          ? `<strong>Motore Local DB:</strong> SQLite v3.45<br><strong>Bitrate Scrittura:</strong> 2.4 MB/s`
-          : `<strong>Local DB Engine:</strong> SQLite v3.45<br><strong>Write Bitrate:</strong> 2.4 MB/s`,
+        customInfo: (metrics) =>
+          isIt
+            ? `<strong>Motore Local DB:</strong> SQLite v3.45<br><strong>Bitrate Scrittura:</strong> 2.4 MB/s`
+            : `<strong>Local DB Engine:</strong> SQLite v3.45<br><strong>Write Bitrate:</strong> 2.4 MB/s`,
         inputSample: `{\n  "sensor_id": "sensor_08b",\n  "reading": 82.4\n}`,
-        outputSample: `{\n  "write_status": "COMMITTED",\n  "bytes_written": 256,\n  "timestamp": 1719324810\n}`
+        outputSample: `{\n  "write_status": "COMMITTED",\n  "bytes_written": 256,\n  "timestamp": 1719324810\n}`,
+        rustCode: `// Write raw logs to local SQLite Edge storage\ntelemetry.sink(SqliteSink::new("local_cache.db"));`,
       },
-      'anomaly-detect': {
-        name: isIt ? 'Filtro Anomalie' : 'Anomaly Filter',
-        type: isIt ? 'Filtro' : 'Filter',
-        left: '65%', top: '30%',
+      "anomaly-detect": {
+        name: isIt ? "Filtro Anomalie" : "Anomaly Filter",
+        type: isIt ? "Filtro" : "Filter",
+        left: "65%",
+        top: "30%",
         description: isIt
-          ? 'Confronta le medie calcolate nelle finestre con le soglie di sicurezza delle macchine per rilevare surriscaldamenti o vibrazioni insolite.'
-          : 'Compares window averages against machinery safety envelopes to filter and trigger alerts for heat/vibrations spikes.',
+          ? "Confronta le medie calcolate nelle finestre con le soglie di sicurezza delle macchine per rilevare surriscaldamenti o vibrazioni insolite."
+          : "Compares window averages against machinery safety envelopes to filter and trigger alerts for heat/vibrations spikes.",
         baseMetrics: { throughput: 24.8, latency: 0.4, cpu: 28, mem: 3.5 },
         customInfo: (metrics) => {
           if (simState.isWarningActive) {
@@ -297,127 +379,157 @@ const scenarios = {
         },
         customBubble: (metrics) => {
           if (simState.isWarningActive) {
-            return isIt 
+            return isIt
               ? `<div class="warning-alert-text">Warning: Anomalia Rilevata!</div>`
               : `<div class="warning-alert-text">Warning: Anomaly Detected!</div>`;
           }
-          return '';
+          return "";
         },
         inputSample: `{\n  "window_start": 1719324800,\n  "avg_value": 81.9,\n  "sensor_id": "sensor_08b"\n}`,
         outputSample: () => {
           if (simState.isWarningActive) {
-            return JSON.stringify({
-              "sensor_id": "sensor_08b",
-              "trigger_metric": "temp_c",
-              "severity": "CRITICAL",
-              "avg_value": 81.9,
-              "current_value": 82.4,
-              "threshold": 80.0,
-              "anomaly_detected": true
-            }, null, 2);
+            return JSON.stringify(
+              {
+                sensor_id: "sensor_08b",
+                trigger_metric: "temp_c",
+                severity: "CRITICAL",
+                avg_value: 81.9,
+                current_value: 82.4,
+                threshold: 80.0,
+                anomaly_detected: true,
+              },
+              null,
+              2,
+            );
           }
-          return JSON.stringify({
-            "sensor_id": "sensor_08b",
-            "anomaly_detected": false
-          }, null, 2);
-        }
+          return JSON.stringify(
+            {
+              sensor_id: "sensor_08b",
+              anomaly_detected: false,
+            },
+            null,
+            2,
+          );
+        },
+        rustCode: `// Filter windows where metrics breach security threshold boundaries\nlet alerts = aggregated.filter(|window| {\n    window.avg_value > 80.0 || window.has_anomaly_pattern()\n}).split(2);`,
       },
-      'alert-dispatcher': {
-        name: isIt ? 'Avviso Emergenza' : 'PagerDuty Alert',
-        type: isIt ? 'Destinazione' : 'Sink',
-        left: '92%', top: '20%',
+      "alert-dispatcher": {
+        name: isIt ? "Avviso Emergenza" : "PagerDuty Alert",
+        type: isIt ? "Destinazione" : "Sink",
+        left: "92%",
+        top: "20%",
         description: isIt
-          ? 'Invia avvisi ad alta priorità e apre ticket di manutenzione su piattaforme esterne quando viene confermata un\'anomalia.'
-          : 'Dispatches instant priority incidents and maintenance alerts to PagerDuty or Slack channels on anomaly triggers.',
+          ? "Invia avvisi ad alta priorità e apre ticket di manutenzione su piattaforme esterne quando viene confermata un'anomalia."
+          : "Dispatches instant priority incidents and maintenance alerts to PagerDuty or Slack channels on anomaly triggers.",
         baseMetrics: { throughput: 0.1, latency: 14.5, cpu: 5, mem: 1.2 },
-        customInfo: (metrics) => isIt
-          ? `<strong>Canale Uscita:</strong> PagerDuty webhook<br><strong>Stato Chiamate:</strong> Connesso`
-          : `<strong>Incident Target:</strong> PagerDuty Webhook<br><strong>Channel Health:</strong> Connected`,
+        customInfo: (metrics) =>
+          isIt
+            ? `<strong>Canale Uscita:</strong> PagerDuty webhook<br><strong>Stato Chiamate:</strong> Connesso`
+            : `<strong>Incident Target:</strong> PagerDuty Webhook<br><strong>Channel Health:</strong> Connected`,
         inputSample: `{\n  "sensor_id": "sensor_08b",\n  "severity": "CRITICAL"\n}`,
         outputSample: () => {
           if (simState.isWarningActive) {
-            return JSON.stringify({
-              "incident_key": "incident-50912A",
-              "pagerduty_status": "TRIGGERED",
-              "assigned_team": "Maintenance-OnCall",
-              "timestamp": "2026-06-29T14:13:35Z"
-            }, null, 2);
+            return JSON.stringify(
+              {
+                incident_key: "incident-50912A",
+                pagerduty_status: "TRIGGERED",
+                assigned_team: "Maintenance-OnCall",
+                timestamp: "2026-06-29T14:13:35Z",
+              },
+              null,
+              2,
+            );
           }
           return `{\n  "status": "IDLE",\n  "active_incidents": 0\n}`;
-        }
+        },
+        rustCode: `// Dispatch high priority alerts to on-duty engineers\nalerts.sink(PagerDutyWebhookSink::new("pagerduty_endpoint"));`,
       },
-      'metrics-sink': {
-        name: isIt ? 'Database Metriche' : 'Timescale Cloud',
-        type: isIt ? 'Destinazione' : 'Sink',
-        left: '92%', top: '50%',
+      "metrics-sink": {
+        name: isIt ? "Database Metriche" : "Timescale Cloud",
+        type: isIt ? "Destinazione" : "Sink",
+        left: "92%",
+        top: "50%",
         description: isIt
-          ? 'Memorizza le letture aggregate delle finestre nel database cloud TimescaleDB per reportistiche storiche e dashboard analitiche.'
-          : 'Stores aggregated telemetry metrics into TimescaleDB time-series database in the Cloud for dashboard analysis.',
+          ? "Memorizza le letture aggregate delle finestre nel database cloud TimescaleDB per reportistiche storiche e dashboard analitiche."
+          : "Stores aggregated telemetry metrics into TimescaleDB time-series database in the Cloud for dashboard analysis.",
         baseMetrics: { throughput: 24.7, latency: 8.5, cpu: 12, mem: 2.5 },
-        customInfo: (metrics) => isIt
-          ? `<strong>Target DB:</strong> TimescaleDB Cloud Cluster<br><strong>Ritardo Ingestione:</strong> 8.2ms`
-          : `<strong>Target Database:</strong> TimescaleDB Cloud<br><strong>Ingestion Delay:</strong> 8.2ms`,
+        customInfo: (metrics) =>
+          isIt
+            ? `<strong>Target DB:</strong> TimescaleDB Cloud Cluster<br><strong>Ritardo Ingestione:</strong> 8.2ms`
+            : `<strong>Target Database:</strong> TimescaleDB Cloud<br><strong>Ingestion Delay:</strong> 8.2ms`,
         inputSample: `{\n  "sensor_id": "sensor_08b",\n  "avg_value": 81.9\n}`,
-        outputSample: `{\n  "db_write": "SUCCESS",\n  "records_inserted": 1,\n  "table": "sensor_averages_10s"\n}`
-      }
-    }
+        outputSample: `{\n  "db_write": "SUCCESS",\n  "records_inserted": 1,\n  "table": "sensor_averages_10s"\n}`,
+        rustCode: `// Persist aggregated windows in TimescaleDB database\naggregated.sink(TimescaleDbSink::new("timescaledb_metrics"));`,
+      },
+    },
   },
   cdn: {
-    name: isIt ? 'Analisi Web CDN' : 'CDN Web Analytics',
+    name: isIt ? "Analisi Web CDN" : "CDN Web Analytics",
     globalDescription: isIt
-      ? 'Elaborazione log web in tempo reale, arricchimento Geo-IP, filtraggio crawler/bot malevoli e calcolo sessioni utente.'
-      : 'Real-time CDN web logs processing, Geo-IP lookup enrichment, malicious bot filtering, and user sessionization.',
+      ? "Elaborazione log web in tempo reale, arricchimento Geo-IP, filtraggio crawler/bot malevoli e calcolo sessioni utente."
+      : "Real-time CDN web logs processing, Geo-IP lookup enrichment, malicious bot filtering, and user sessionization.",
     baseMetrics: { throughput: 18.2, latency: 0.8, cpu: 28, mem: 5.6 },
-    anomalyNodeId: 'bot-detector',
-    warningAffects: ['sessionizer'],
+    anomalyNodeId: "bot-detector",
+    warningAffects: ["sessionizer"],
     anomalyLogMessages: [
-      isIt ? 'AVVISO: Filtro Bot: Rilevata firma di attacco DDoS DDoS-Scraper dall\'IP 192.168.1.100. Richieste bloccate.' : 'WARNING: Bot Filter: Malicious DDoS-Scraper signature detected from IP 192.168.1.100. Requests blocked.',
-      isIt ? 'AVVISO: Localizzazione IP: Rilevato traffico insolitamente alto per la sotto-rete IP 192.168.1.0/24.' : 'WARNING: Geo-IP Lookup: Unusually high traffic detected for subnetwork 192.168.1.0/24.'
+      isIt
+        ? "AVVISO: Filtro Bot: Rilevata firma di attacco DDoS DDoS-Scraper dall'IP 192.168.1.100. Richieste bloccate."
+        : "WARNING: Bot Filter: Malicious DDoS-Scraper signature detected from IP 192.168.1.100. Requests blocked.",
+      isIt
+        ? "AVVISO: Localizzazione IP: Rilevato traffico insolitamente alto per la sotto-rete IP 192.168.1.0/24."
+        : "WARNING: Geo-IP Lookup: Unusually high traffic detected for subnetwork 192.168.1.0/24.",
     ],
     links: [
-      { from: 'cdn-source', to: 'geo-lookup' },
-      { from: 'cdn-source', to: 'bot-detector' },
-      { from: 'geo-lookup', to: 'sessionizer' },
-      { from: 'bot-detector', to: 'sessionizer' },
-      { from: 'sessionizer', to: 'clickstream-sink' },
-      { from: 'sessionizer', to: 'realtime-dashboard' }
+      { from: "cdn-source", to: "geo-lookup" },
+      { from: "cdn-source", to: "bot-detector" },
+      { from: "geo-lookup", to: "sessionizer" },
+      { from: "bot-detector", to: "sessionizer" },
+      { from: "sessionizer", to: "clickstream-sink" },
+      { from: "sessionizer", to: "realtime-dashboard" },
     ],
     nodes: {
-      'cdn-source': {
-        name: isIt ? 'Log Web CDN' : 'CDN Web Logs',
-        type: isIt ? 'Sorgente' : 'Source',
-        left: '6%', top: '50%',
+      "cdn-source": {
+        name: isIt ? "Log Web CDN" : "CDN Web Logs",
+        type: isIt ? "Sorgente" : "Source",
+        left: "6%",
+        top: "50%",
         description: isIt
-          ? 'Endpoint di acquisizione che aggrega i log di accesso in tempo reale da tutti i server CDN distribuiti nel mondo.'
-          : 'High-volume log collector aggregating real-time access log packets from edge CDN servers globally.',
+          ? "Endpoint di acquisizione che aggrega i log di accesso in tempo reale da tutti i server CDN distribuiti nel mondo."
+          : "High-volume log collector aggregating real-time access log packets from edge CDN servers globally.",
         baseMetrics: { throughput: 42.1, latency: 0.05, cpu: 18, mem: 3.5 },
-        customInfo: (metrics) => isIt
-          ? `<strong>Server Ingest:</strong> 15 Edge CDN Nodes<br><strong>Log Ingest Rate:</strong> 42.1k reqs/s`
-          : `<strong>Active Nodes:</strong> 15 Edge CDN Nodes<br><strong>Log Ingest Rate:</strong> 42.1k reqs/s`,
+        customInfo: (metrics) =>
+          isIt
+            ? `<strong>Server Ingest:</strong> 15 Edge CDN Nodes<br><strong>Log Ingest Rate:</strong> 42.1k reqs/s`
+            : `<strong>Active Nodes:</strong> 15 Edge CDN Nodes<br><strong>Log Ingest Rate:</strong> 42.1k reqs/s`,
         inputSample: `{\n  "ip": "192.168.1.100",\n  "agent": "Mozilla/5.0",\n  "uri": "/index.html",\n  "bytes": 4510\n}`,
-        outputSample: `{\n  "request_id": "req_8019A",\n  "ip_address": "192.168.1.100",\n  "user_agent": "Mozilla/5.0",\n  "uri": "/index.html"\n}`
+        outputSample: `{\n  "request_id": "req_8019A",\n  "ip_address": "192.168.1.100",\n  "user_agent": "Mozilla/5.0",\n  "uri": "/index.html"\n}`,
+        rustCode: `// Collect real-time access logs from Kafka CDN topics\nlet ctx = StreamContext::new(config);\nlet logs = ctx.stream_kafka(kafka_conf, &["cdn-access"], Replication::Unlimited).split(2);`,
       },
-      'geo-lookup': {
-        name: isIt ? 'Localizzazione IP' : 'Geo-IP Lookup',
-        type: isIt ? 'Operatore' : 'Operator',
-        left: '35%', top: '20%',
+      "geo-lookup": {
+        name: isIt ? "Localizzazione IP" : "Geo-IP Lookup",
+        type: isIt ? "Operatore" : "Operator",
+        left: "35%",
+        top: "20%",
         description: isIt
-          ? 'Interroga un database GeoIP MaxMind residente in memoria ad alte prestazioni per arricchire il record di log con paese, città e ISP.'
-          : 'Enriches raw log entries with geographical details (country, region, city) using an ultra-fast in-memory lookup cache.',
+          ? "Interroga un database GeoIP MaxMind residente in memoria ad alte prestazioni per arricchire il record di log con paese, città e ISP."
+          : "Enriches raw log entries with geographical details (country, region, city) using an ultra-fast in-memory lookup cache.",
         baseMetrics: { throughput: 38.5, latency: 0.3, cpu: 25, mem: 6.8 },
-        customInfo: (metrics) => isIt
-          ? `<strong>Cache DB:</strong> MaxMind GeoIP2 Lite<br><strong>Hit Rate:</strong> 99.8%`
-          : `<strong>Database Cache:</strong> MaxMind GeoIP2 Lite<br><strong>Hit Rate:</strong> 99.8%`,
+        customInfo: (metrics) =>
+          isIt
+            ? `<strong>Cache DB:</strong> MaxMind GeoIP2 Lite<br><strong>Hit Rate:</strong> 99.8%`
+            : `<strong>Database Cache:</strong> MaxMind GeoIP2 Lite<br><strong>Hit Rate:</strong> 99.8%`,
         inputSample: `{\n  "ip_address": "192.168.1.100"\n}`,
-        outputSample: `{\n  "ip_address": "192.168.1.100",\n  "geo": {\n    "country": "US",\n    "city": "Chicago",\n    "lat": 41.87,\n    "lon": -87.62\n  }\n}`
+        outputSample: `{\n  "ip_address": "192.168.1.100",\n  "geo": {\n    "country": "US",\n    "city": "Chicago",\n    "lat": 41.87,\n    "lon": -87.62\n  }\n}`,
+        rustCode: `// Map logs to enrich them with GeoIP lookup cache\nlet enriched = logs.map(|log| {\n    let geo = maxmind_lookup(log.ip_address);\n    log.enrich_with_geo(geo)\n});`,
       },
-      'bot-detector': {
-        name: isIt ? 'Filtro Bot' : 'Bot Filter',
-        type: isIt ? 'Filtro' : 'Filter',
-        left: '35%', top: '50%',
+      "bot-detector": {
+        name: isIt ? "Filtro Bot" : "Bot Filter",
+        type: isIt ? "Filtro" : "Filter",
+        left: "35%",
+        top: "50%",
         description: isIt
-          ? 'Analizza le firme delle richieste, i tassi di click e le soglie insolite per rilevare ed eliminare crawlers di motori di ricerca, scrapers e bot DDoS.'
-          : 'Inspects requests fingerprints and access frequencies to identify and filter malicious scrapers, scrapers, and DDoS networks.',
+          ? "Analizza le firme delle richieste, i tassi di click e le soglie insolite per rilevare ed eliminare crawlers di motori di ricerca, scrapers e bot DDoS."
+          : "Inspects requests fingerprints and access frequencies to identify and filter malicious scrapers, scrapers, and DDoS networks.",
         baseMetrics: { throughput: 38.2, latency: 0.6, cpu: 32, mem: 4.8 },
         customInfo: (metrics) => {
           if (simState.isWarningActive) {
@@ -431,73 +543,91 @@ const scenarios = {
         },
         customBubble: (metrics) => {
           if (simState.isWarningActive) {
-            return isIt 
+            return isIt
               ? `<div class="warning-alert-text">Warning: DDoS Filtro Attivo!</div>`
               : `<div class="warning-alert-text">Warning: DDoS Filter Active!</div>`;
           }
-          return '';
+          return "";
         },
         inputSample: `{\n  "ip_address": "192.168.1.100",\n  "user_agent": "Mozilla/5.0"\n}`,
         outputSample: () => {
           if (simState.isWarningActive) {
-            return JSON.stringify({
-              "ip_address": "192.168.1.100",
-              "action": "BLOCK_REQUEST",
-              "reason": "DDOS_SCRAPER_SIGNATURE",
-              "risk_score": 1.00
-            }, null, 2);
+            return JSON.stringify(
+              {
+                ip_address: "192.168.1.100",
+                action: "BLOCK_REQUEST",
+                reason: "DDOS_SCRAPER_SIGNATURE",
+                risk_score: 1.0,
+              },
+              null,
+              2,
+            );
           }
-          return JSON.stringify({
-            "ip_address": "192.168.1.100",
-            "action": "ALLOW_REQUEST",
-            "risk_score": 0.01
-          }, null, 2);
-        }
+          return JSON.stringify(
+            {
+              ip_address: "192.168.1.100",
+              action: "ALLOW_REQUEST",
+              risk_score: 0.01,
+            },
+            null,
+            2,
+          );
+        },
+        rustCode: `// Filter out requests classified as bots or scrapers\nlet clean_traffic = enriched.filter(|log| {\n    let is_bot = evaluate_bot_score(log.user_agent, log.request_rate);\n    !is_bot\n});`,
       },
-      'sessionizer': {
-        name: isIt ? 'Finestra Sessione' : 'Session Window',
-        type: isIt ? 'Operatore' : 'Operator',
-        left: '65%', top: '35%',
+      sessionizer: {
+        name: isIt ? "Finestra Sessione" : "Session Window",
+        type: isIt ? "Operatore" : "Operator",
+        left: "65%",
+        top: "35%",
         description: isIt
-          ? 'Costruisce sessioni di navigazione utente raggruppando le richieste basandosi su cookie o IP, con un timeout di inattività di 30 minuti.'
-          : 'Groups web requests into user navigation sessions based on session tokens or IP addresses, using a 30-minute inactivity timeout.',
+          ? "Costruisce sessioni di navigazione utente raggruppando le richieste basandosi su cookie o IP, con un timeout di inattività di 30 minuti."
+          : "Groups web requests into user navigation sessions based on session tokens or IP addresses, using a 30-minute inactivity timeout.",
         baseMetrics: { throughput: 36.8, latency: 1.5, cpu: 26, mem: 7.2 },
-        customInfo: (metrics) => isIt
-          ? `<strong>Tipo Finestra:</strong> Finestra di Sessione (Timeout 30m)<br><strong>Sessioni Attive:</strong> 14,280 in RAM`
-          : `<strong>Window Mode:</strong> Session Gap (30m timeout)<br><strong>Active Sessions:</strong> 14,280 stateful`,
+        customInfo: (metrics) =>
+          isIt
+            ? `<strong>Tipo Finestra:</strong> Finestra di Sessione (Timeout 30m)<br><strong>Sessioni Attive:</strong> 14,280 in RAM`
+            : `<strong>Window Mode:</strong> Session Gap (30m timeout)<br><strong>Active Sessions:</strong> 14,280 stateful`,
         inputSample: `{\n  "request_id": "req_8019A",\n  "ip_address": "192.168.1.100",\n  "geo": {"country": "US"}\n}`,
-        outputSample: `{\n  "session_id": "sess_us_chicago_908",\n  "clicks": 4,\n  "duration_seconds": 182,\n  "landing_page": "/index.html",\n  "is_completed": false\n}`
+        outputSample: `{\n  "session_id": "sess_us_chicago_908",\n  "clicks": 4,\n  "duration_seconds": 182,\n  "landing_page": "/index.html",\n  "is_completed": false\n}`,
+        rustCode: `// Group clicks into session windows based on 30 min idle gaps\nlet sessions = clean_traffic.join(enriched)\n    .window_all(SessionWindow::with_gap(Duration::from_secs(1800)))\n    .reduce(|s1, s2| s1.merge(s2)).split(2);`,
       },
-      'clickstream-sink': {
-        name: isIt ? 'Store Navigazione' : 'Clickstream Store',
-        type: isIt ? 'Destinazione' : 'Sink',
-        left: '92%', top: '20%',
+      "clickstream-sink": {
+        name: isIt ? "Store Navigazione" : "Clickstream Store",
+        type: isIt ? "Destinazione" : "Sink",
+        left: "92%",
+        top: "20%",
         description: isIt
-          ? 'Salva le sessioni utente chiuse in Apache Iceberg o Parquet su S3 per reportistiche mensili e addestramento modelli AI.'
-          : 'Saves closed user session packets into Apache Iceberg or S3 Parquet formats for long-term offline behavior analytics.',
+          ? "Salva le sessioni utente chiuse in Apache Iceberg o Parquet su S3 per reportistiche mensili e addestramento modelli AI."
+          : "Saves closed user session packets into Apache Iceberg or S3 Parquet formats for long-term offline behavior analytics.",
         baseMetrics: { throughput: 8.2, latency: 12.0, cpu: 14, mem: 2.8 },
-        customInfo: (metrics) => isIt
-          ? `<strong>Format:</strong> Apache Parquet / S3<br><strong>Compattazione:</strong> Attiva`
-          : `<strong>Storage Format:</strong> Apache Parquet / S3<br><strong>Compacting:</strong> Active`,
+        customInfo: (metrics) =>
+          isIt
+            ? `<strong>Format:</strong> Apache Parquet / S3<br><strong>Compattazione:</strong> Attiva`
+            : `<strong>Storage Format:</strong> Apache Parquet / S3<br><strong>Compacting:</strong> Active`,
         inputSample: `{\n  "session_id": "sess_us_chicago_908",\n  "clicks": 4,\n  "duration_seconds": 182\n}`,
-        outputSample: `{\n  "write_status": "COMMITTED",\n  "file_path": "s3://clickstream/2026/06/29/sess_908.parquet"\n}`
+        outputSample: `{\n  "write_status": "COMMITTED",\n  "file_path": "s3://clickstream/2026/06/29/sess_908.parquet"\n}`,
+        rustCode: `// Store structured sessions in clickstream Parquet format\nsessions.sink(ParquetIcebergSink::new("clickstream_bucket"));`,
       },
-      'realtime-dashboard': {
-        name: isIt ? 'Metriche Live Redis' : 'Redis Live Stats',
-        type: isIt ? 'Destinazione' : 'Sink',
-        left: '92%', top: '50%',
+      "realtime-dashboard": {
+        name: isIt ? "Metriche Live Redis" : "Redis Live Stats",
+        type: isIt ? "Destinazione" : "Sink",
+        left: "92%",
+        top: "50%",
         description: isIt
-          ? 'Aggiorna contatori in tempo reale, statistiche geografiche dei visitatori e metriche attive visualizzate in RAM per le dashboard aziendali.'
-          : 'Increments real-time click counters, country rankings, and active user stats in a high-performance Redis database.',
+          ? "Aggiorna contatori in tempo reale, statistiche geografiche dei visitatori e metriche attive visualizzate in RAM per le dashboard aziendali."
+          : "Increments real-time click counters, country rankings, and active user stats in a high-performance Redis database.",
         baseMetrics: { throughput: 36.8, latency: 1.1, cpu: 15, mem: 2.1 },
-        customInfo: (metrics) => isIt
-          ? `<strong>Redis Host:</strong> cluster-live.redis.internal<br><strong>Latenza Scrittura:</strong> 0.4ms`
-          : `<strong>Redis Target:</strong> cluster-live.redis.internal<br><strong>Write Latency:</strong> 0.4ms`,
+        customInfo: (metrics) =>
+          isIt
+            ? `<strong>Redis Host:</strong> cluster-live.redis.internal<br><strong>Latenza Scrittura:</strong> 0.4ms`
+            : `<strong>Redis Target:</strong> cluster-live.redis.internal<br><strong>Write Latency:</strong> 0.4ms`,
         inputSample: `{\n  "session_id": "sess_us_chicago_908",\n  "clicks": 4\n}`,
-        outputSample: `{\n  "redis_status": "SUCCESS",\n  "key_updated": "live:clicks:us",\n  "ttl_refresh_sec": 1800\n}`
-      }
-    }
-  }
+        outputSample: `{\n  "redis_status": "SUCCESS",\n  "key_updated": "live:clicks:us",\n  "ttl_refresh_sec": 1800\n}`,
+        rustCode: `// Write live aggregates to local Redis database cache\nsessions.sink(RedisLiveCounterSink::new("redis_live_stats"));`,
+      },
+    },
+  },
 };
 
 // Select and load a pipeline scenario configuration
@@ -947,19 +1077,34 @@ function updateInspectorPanel() {
 
     drawSparkline(historyData[selected]);
 
+    const warningActive = simState.isWarningActive;
     const explainCard = document.getElementById('explainability-card');
-    if (explainCard) {
-      document.getElementById('explain-node-name').textContent = config.name;
-      document.getElementById('explain-node-type').textContent = config.type;
-      document.getElementById('explain-node-description').textContent = config.description;
+    
+    // Cache-guard: Only update code highlight block and text inputs if node selection or warning states changed
+    if (simState.lastRenderedNode !== selected || simState.lastRenderedWarning !== warningActive) {
+      simState.lastRenderedNode = selected;
+      simState.lastRenderedWarning = warningActive;
       
-      const inSample = typeof config.inputSample === 'function' ? config.inputSample() : config.inputSample;
-      const outSample = typeof config.outputSample === 'function' ? config.outputSample() : config.outputSample;
-      
-      document.getElementById('explain-node-input').textContent = inSample;
-      document.getElementById('explain-node-output').textContent = outSample;
-      
-      explainCard.classList.remove('hidden');
+      if (explainCard) {
+        document.getElementById('explain-node-name').textContent = config.name;
+        document.getElementById('explain-node-type').textContent = config.type;
+        document.getElementById('explain-node-description').textContent = config.description;
+        
+        const inSample = typeof config.inputSample === 'function' ? config.inputSample() : config.inputSample;
+        const outSample = typeof config.outputSample === 'function' ? config.outputSample() : config.outputSample;
+        
+        document.getElementById('explain-node-input').textContent = inSample;
+        document.getElementById('explain-node-output').textContent = outSample;
+  
+        // Dynamic Rust code syntax highlighting injection
+        const codeContainer = document.getElementById('explain-node-code');
+        if (codeContainer) {
+          const rawCode = typeof config.rustCode === 'function' ? config.rustCode() : config.rustCode;
+          codeContainer.innerHTML = highlightRustCode(rawCode || '');
+        }
+        
+        explainCard.classList.remove('hidden');
+      }
     }
 
   } else {
@@ -995,8 +1140,12 @@ function updateInspectorPanel() {
     drawSparkline(historyData['global']);
 
     const explainCard = document.getElementById('explainability-card');
-    if (explainCard) {
-      explainCard.classList.add('hidden');
+    if (simState.lastRenderedNode !== null) {
+      simState.lastRenderedNode = null;
+      simState.lastRenderedWarning = simState.isWarningActive;
+      if (explainCard) {
+        explainCard.classList.add('hidden');
+      }
     }
   }
 }

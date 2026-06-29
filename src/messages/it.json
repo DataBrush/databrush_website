@@ -445,5 +445,6 @@
   "db_scenario_sub": "// Seleziona una demo di pipeline Renoir",
   "db_scenario_financial": "Audit Finanziario",
   "db_scenario_iot": "Fabbrica Intelligente IoT",
-  "db_scenario_cdn": "Analisi Web CDN"
+  "db_scenario_cdn": "Analisi Web CDN",
+  "db_operator_code": "Implementazione Operatore Renoir (Rust)"
 }
