@@ -84,42 +84,40 @@ const metadata = {
                 </span>
               </div>
               
-              <!-- Pipeline SVG diagram -->
-              <div class="border-4 border-black p-4 bg-gray-50 mb-6 relative select-none overflow-hidden">
+              <!-- Pipeline diagram -->
+              <div class="border-4 border-black p-4 bg-gray-50 mb-6 relative select-none overflow-hidden pb-10">
                 <div class="text-xs font-mono font-black text-gray-500 mb-2">// PIPELINE_DAG_TOPOLOGY</div>
                 
-                <div class="flex items-center justify-between gap-2 py-4 relative" style="min-height: 80px;">
-                  <!-- Connection SVG Lines -->
-                  <svg class="absolute inset-0 w-full h-full pointer-events-none" style="min-height: 80px;">
-                    <!-- Path 1: Source to Operator (Active/Green) -->
-                    <path d="M 40 40 L 155 40" stroke="#00D696" stroke-width="6" fill="none" class="neo-border-thin" />
-                    <!-- Path 2: Operator to Sink (Broken/Red-dashed initially) -->
-                    <path id="connection-path-2" d="M 215 40 L 330 40" stroke="#FF4D50" stroke-width="4" stroke-dasharray="6,6" fill="none" />
-                  </svg>
-                  
+                <div class="flex items-center justify-between w-full px-2 py-4 relative">
                   <!-- Node 1: Input Source -->
-                  <div class="z-10 flex flex-col items-center gap-1">
-                    <div class="w-14 h-14 rounded-none border-4 border-black bg-color-chart-2 flex items-center justify-center neo-shadow text-black font-black text-xs">
+                  <div class="relative flex flex-col items-center justify-center z-10">
+                    <div class="w-14 h-14 rounded-none border-4 border-black bg-color-chart-2 flex items-center justify-center neo-shadow text-black font-black text-xs shrink-0">
                       IN
                     </div>
-                    <span class="font-mono text-[9px] font-bold text-gray-700">SourceNode</span>
+                    <span class="absolute top-16 font-mono text-[9px] font-bold text-gray-700 whitespace-nowrap">SourceNode</span>
                   </div>
                   
+                  <!-- Line 1: Source to Operator (Active/Green) -->
+                  <div class="flex-grow h-2 bg-[#00D696] border-y-2 border-black mx-1 min-w-[20px]"></div>
+                  
                   <!-- Node 2: 404 Error Node -->
-                  <div class="z-10 flex flex-col items-center gap-1">
-                    <div id="operator-node" class="w-16 h-16 rounded-none border-4 border-black bg-color-chart-4 flex flex-col items-center justify-center neo-shadow text-black font-black text-xs animate-pulse">
+                  <div class="relative flex flex-col items-center justify-center z-10">
+                    <div id="operator-node" class="w-16 h-16 rounded-none border-4 border-black bg-color-chart-4 flex flex-col items-center justify-center neo-shadow text-black font-black text-xs animate-pulse shrink-0">
                       <AlertTriangle class="w-5 h-5 mb-0.5 text-black" id="operator-icon" />
                       <span id="operator-label">404</span>
                     </div>
-                    <span class="font-mono text-[9px] font-bold text-gray-700">FaultyOperator</span>
+                    <span class="absolute top-18 font-mono text-[9px] font-bold text-gray-700 whitespace-nowrap">FaultyOperator</span>
                   </div>
                   
+                  <!-- Line 2: Operator to Sink (Broken/Red-dashed initially) -->
+                  <div id="connection-line-2" class="flex-grow h-1.5 border-t-4 border-dashed border-[#FF4D50] mx-1 min-w-[20px]"></div>
+                  
                   <!-- Node 3: Output Sink -->
-                  <div class="z-10 flex flex-col items-center gap-1">
-                    <div id="sink-node" class="w-14 h-14 rounded-none border-4 border-black bg-gray-200 border-dashed flex items-center justify-center neo-shadow text-gray-500 font-black text-xs">
+                  <div class="relative flex flex-col items-center justify-center z-10">
+                    <div id="sink-node" class="w-14 h-14 rounded-none border-4 border-black bg-gray-200 border-dashed flex items-center justify-center neo-shadow text-gray-500 font-black text-xs shrink-0">
                       OUT
                     </div>
-                    <span class="font-mono text-[9px] font-bold text-gray-500" id="sink-label">OfflineSink</span>
+                    <span class="absolute top-16 font-mono text-[9px] font-bold text-gray-500 whitespace-nowrap" id="sink-label">OfflineSink</span>
                   </div>
                 </div>
               </div>
@@ -160,7 +158,7 @@ const metadata = {
 <script define:vars={{ homeUrl: getRelativeLocaleUrl(lang, '/'), fixText: m.error_404_visual_fix(), fixedText: m.error_404_visual_fixed() }}>
   const fixBtn = document.getElementById('btn-fix-connection');
   const consoleLogs = document.getElementById('console-logs');
-  const connectionPath2 = document.getElementById('connection-path-2');
+  const connectionLine2 = document.getElementById('connection-line-2');
   const operatorNode = document.getElementById('operator-node');
   const operatorIcon = document.getElementById('operator-icon');
   const operatorLabel = document.getElementById('operator-label');
@@ -183,10 +181,8 @@ const metadata = {
         appendLog('[00:00:04] [INFO] Code injection successful. Rebuilding pipeline DAG...', 'text-cyan-400');
         
         // Visual changes: update connections & states
-        if (connectionPath2) {
-          connectionPath2.setAttribute('stroke', '#00D696');
-          connectionPath2.setAttribute('stroke-dasharray', 'none');
-          connectionPath2.setAttribute('stroke-width', '6');
+        if (connectionLine2) {
+          connectionLine2.className = 'flex-grow h-2 bg-[#00D696] border-y-2 border-black mx-1 min-w-[20px]';
         }
         
         if (operatorNode) {
