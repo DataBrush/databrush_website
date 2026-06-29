@@ -13,7 +13,7 @@ Renoir uses Cargo feature flags to control optional functionality. Some features
 | Iterator, Parallel Iterator, File, CSV, Channel | — | Built-in, no flag needed |
 | Avro source / sink | `avro` | |
 | Parquet source / sink | `parquet` | |
-| Async stream source, async operators | `tokio` | See [Tokio](tokio.md) |
+| Async stream source, async operators | `tokio` | See [Tokio](/docs/user-guide/tokio/) |
 | Kafka source / sink | `rdkafka` | Experimental; implies `tokio` |
 
 ### Runtime features

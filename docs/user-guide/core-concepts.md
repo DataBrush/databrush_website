@@ -32,7 +32,7 @@ Every Renoir `Stream` lives within a `StreamContext`. The context can contain mu
 
 > By default Renoir provides an `execute_blocking()` method that starts all the streams and operators and waits until all have finished.
 >
-> For non-blocking, async execution, enable the `tokio` feature and use `ctx.execute().await` inside an async main. See the [Tokio](tokio.md) page for details.
+> For non-blocking, async execution, enable the `tokio` feature and use `ctx.execute().await` inside an async main. See the [Tokio](/docs/user-guide/tokio/) page for details.
 
 ## From Iterators to Streams
 

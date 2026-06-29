@@ -150,4 +150,4 @@ Sample output: [0, 6, 10, 12, 18, 20, 24, 30, 36, 40]
 
 ---
 
-> :octicons-light-bulb-16: **Bonus Tip**: Set up your development environment (including VS Code tips and cargo settings) by visiting the [Development Environment Guide](../appendix/editor.md).
+> :octicons-light-bulb-16: **Bonus Tip**: Set up your development environment (including VS Code tips and cargo settings) by visiting the [Development Environment Guide](/docs/appendix/editor/).

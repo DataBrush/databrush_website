@@ -165,4 +165,4 @@ With an **unbounded** source (Kafka, channel, async stream), the stream never te
 | `ProcessingTimeWindow` | Wall-clock time elapsed | Yes |
 | `EventTimeWindow` | Watermark advances past end | Only with a watermark generator |
 
-For `EventTimeWindow` on a live source you **must** attach timestamps and a watermark strategy via `add_timestamps`, without watermarks, event-time windows accumulate elements indefinitely and never emit. See the [Timestamps & Watermarks](../watermarks.md) guide for how to instrument a real-time source correctly.
+For `EventTimeWindow` on a live source you **must** attach timestamps and a watermark strategy via `add_timestamps`, without watermarks, event-time windows accumulate elements indefinitely and never emit. See the [Timestamps & Watermarks](/docs/user-guide/watermarks/) guide for how to instrument a real-time source correctly.

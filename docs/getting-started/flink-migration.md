@@ -1,6 +1,6 @@
 # Apache Flink to Renoir Migration Guide
 
-> This guide assumes you have already set up an environment for Renoir and created a Cargo project following the [Installation Guide](install.md).
+> This guide assumes you have already set up an environment for Renoir and created a Cargo project following the [Installation Guide](/docs/getting-started/install/).
 
 If you are coming from Apache Flink, you will find Renoir's programming paradigm very familiar. Both platforms model computation as a **directed dataflow graph of operators**, where elements flow through a series of transformations from one or more *Sources* to one or more *Sinks*.
 

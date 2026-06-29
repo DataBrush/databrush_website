@@ -186,7 +186,7 @@ env.execute_blocking();
 assert_eq!(res.get().unwrap(), vec![4, 1, 0, 1, 4, 2, 2, 4, 1, 0]);
 ```
 
-> For async variants of memoized map, see [Tokio Integration](../tokio.md).
+> For async variants of memoized map, see [Tokio Integration](/docs/user-guide/tokio/).
 
 ---
 

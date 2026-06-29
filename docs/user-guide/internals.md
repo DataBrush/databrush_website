@@ -125,7 +125,7 @@ Each worker calls `operators.setup(metadata)` once to let operators initialise (
 Every block except source blocks begins with a `Start` operator, inserted automatically by `split_block`. `Start` is responsible for:
 
 - **Receiving** `StreamElement` batches from all upstream replicas over the network layer.
-- **Merging watermarks** across replicas via the `WatermarkFrontier` — a watermark is only forwarded once *all* upstream replicas have reported a watermark at least as large (see [Timestamps & Watermarks](watermarks.md)).
+- **Merging watermarks** across replicas via the `WatermarkFrontier` — a watermark is only forwarded once *all* upstream replicas have reported a watermark at least as large (see [Timestamps & Watermarks](/docs/user-guide/watermarks/)).
 - **Forwarding control signals** (`FlushAndRestart`, `Terminate`) only after *all* upstream replicas have sent them, ensuring every block ends cleanly.
 
 `Start` is invisible in user code; it appears at the front of every non-source block's operator chain at runtime.

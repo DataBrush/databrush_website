@@ -6,7 +6,7 @@ For exploratory data analysis, rapid prototyping, or showcasing examples, you ca
 
 ## Prerequisites
 
-Before setting up Jupyter, ensure you have the Rust toolchain installed. If not, follow the [Installation Guide](install.md).
+Before setting up Jupyter, ensure you have the Rust toolchain installed. If not, follow the [Installation Guide](/docs/getting-started/install/).
 
 ---
 
