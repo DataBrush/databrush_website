@@ -282,5 +282,10 @@
   "node_controlli_transazione_title": "Transaction Limits",
   "node_salvataggio_audit_title": "Audit Storage",
   "node_accetta_rifiuto_title": "Accept / Reject",
-  "node_invio_conferma_title": "Send Notification"
+  "node_invio_conferma_title": "Send Notification",
+  "db_scenario_label": "Scenario:",
+  "db_scenario_sub": "// Select a Renoir pipeline demo",
+  "db_scenario_financial": "Financial Audit",
+  "db_scenario_iot": "IoT Smart Factory",
+  "db_scenario_cdn": "CDN Web Analytics"
 }

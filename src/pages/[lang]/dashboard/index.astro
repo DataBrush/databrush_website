@@ -114,6 +114,25 @@ const metadata = {
         </div>
       </div>
     </div>
+    
+    <!-- Scenario Selector Toolbar -->
+    <div class="border-4 border-black bg-white p-4 neo-shadow flex flex-col md:flex-row items-center justify-between gap-4 mb-8 text-black">
+      <div class="flex items-center gap-2">
+        <span class="text-lg font-black uppercase">{m.db_scenario_label()}</span>
+        <span class="font-mono text-xs text-gray-500">{m.db_scenario_sub()}</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+        <button class="scenario-btn active sketch-btn text-xs font-black uppercase px-4 py-2 border-2 border-black bg-color-chart-1 text-black w-full md:w-auto" data-scenario="financial">
+          🏦 {m.db_scenario_financial()}
+        </button>
+        <button class="scenario-btn sketch-btn text-xs font-black uppercase px-4 py-2 border-2 border-black bg-white text-black w-full md:w-auto" data-scenario="iot">
+          ⚡ {m.db_scenario_iot()}
+        </button>
+        <button class="scenario-btn sketch-btn text-xs font-black uppercase px-4 py-2 border-2 border-black bg-white text-black w-full md:w-auto" data-scenario="cdn">
+          🌐 {m.db_scenario_cdn()}
+        </button>
+      </div>
+    </div>
 
     <!-- Main Content Grid -->
     <main class="app-content">
@@ -133,127 +152,7 @@ const metadata = {
                 <!-- JS will dynamically populate connection paths here -->
               </svg>
 
-              <!-- HTML Nodes positioned absolutely -->
-              <!-- 1. Operazioni Bancarie (Source) -->
-              <div class="dag-node absolute" id="node-operazioni-bancarie" data-node-id="operazioni-bancarie" style="left: 6%; top: 50%;">
-                <div class="node-border"></div>
-                <div class="node-content">
-                  <span class="node-type">{m.node_source_type()}</span>
-                  <span class="node-title">{m.node_operazioni_bancarie_title()}</span>
-                </div>
-                <div class="node-sketch-bubble">
-                  <div class="bubble-border"></div>
-                  <div class="bubble-content">
-                    <div>throughput: <span class="bubble-stat" id="bubble-stat-operazioni-bancarie-throughput">...</span></div>
-                    <div>CPU: <span class="bubble-stat" id="bubble-stat-operazioni-bancarie-cpu">...</span></div>
-                    <div>Mem: <span class="bubble-stat" id="bubble-stat-operazioni-bancarie-mem">...</span></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 2. Controlli Utente (Filter/Map) -->
-              <div class="dag-node absolute" id="node-controlli-utente" data-node-id="controlli-utente" style="left: 35%; top: 20%;">
-                <div class="node-border"></div>
-                <div class="node-content">
-                  <span class="node-type">{m.node_operator_type()}</span>
-                  <span class="node-title">{m.node_controlli_utente_title()}</span>
-                </div>
-                <div class="node-sketch-bubble">
-                  <div class="bubble-border"></div>
-                  <div class="bubble-content">
-                    <div>throughput: <span class="bubble-stat" id="bubble-stat-controlli-utente-throughput">...</span></div>
-                    <div>CPU: <span class="bubble-stat" id="bubble-stat-controlli-utente-cpu">...</span></div>
-                    <div>Mem: <span class="bubble-stat" id="bubble-stat-controlli-utente-mem">...</span></div>
-                    <div id="bubble-stat-controlli-utente-custom" class="bubble-custom-field"></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 3. Controlli Transazione (Filter/Map) -->
-              <div class="dag-node absolute" id="node-controlli-transazione" data-node-id="controlli-transazione" style="left: 35%; top: 50%;">
-                <div class="node-border"></div>
-                <div class="node-content">
-                  <span class="node-type">{m.node_operator_type()}</span>
-                  <span class="node-title">{m.node_controlli_transazione_title()}</span>
-                </div>
-                <div class="node-sketch-bubble">
-                  <div class="bubble-border"></div>
-                  <div class="bubble-content">
-                    <div>throughput: <span class="bubble-stat" id="bubble-stat-controlli-transazione-throughput">...</span></div>
-                    <div>CPU: <span class="bubble-stat" id="bubble-stat-controlli-transazione-cpu">...</span></div>
-                    <div>Mem: <span class="bubble-stat" id="bubble-stat-controlli-transazione-mem">...</span></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 4. Salvataggio Audit (Pre-Filter Sink) -->
-              <div class="dag-node absolute" id="node-salvataggio-audit-pre" data-node-id="salvataggio-audit-pre" style="left: 35%; top: 80%;">
-                <div class="node-border"></div>
-                <div class="node-content">
-                  <span class="node-type">{m.node_sink_type()}</span>
-                  <span class="node-title">{m.node_salvataggio_audit_title()}</span>
-                </div>
-                <div class="node-sketch-bubble">
-                  <div class="bubble-border"></div>
-                  <div class="bubble-content">
-                    <div>throughput: <span class="bubble-stat" id="bubble-stat-salvataggio-audit-pre-throughput">...</span></div>
-                    <div>CPU: <span class="bubble-stat" id="bubble-stat-salvataggio-audit-pre-cpu">...</span></div>
-                    <div>Mem: <span class="bubble-stat" id="bubble-stat-salvataggio-audit-pre-mem">...</span></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 5. Accetta/Rifiuto (Decision) -->
-              <div class="dag-node absolute" id="node-accetta-rifiuto" data-node-id="accetta-rifiuto" style="left: 65%; top: 50%;">
-                <div class="node-border"></div>
-                <div class="node-content">
-                  <span class="node-type">{m.node_filter_type()}</span>
-                  <span class="node-title">{m.node_accetta_rifiuto_title()}</span>
-                </div>
-                <div class="node-sketch-bubble">
-                  <div class="bubble-border"></div>
-                  <div class="bubble-content">
-                    <div>throughput: <span class="bubble-stat" id="bubble-stat-accetta-rifiuto-throughput">...</span></div>
-                    <div>CPU: <span class="bubble-stat" id="bubble-stat-accetta-rifiuto-cpu">...</span></div>
-                    <div>Mem: <span class="bubble-stat" id="bubble-stat-accetta-rifiuto-mem">...</span></div>
-                    <div id="bubble-stat-accetta-rifiuto-custom" class="bubble-custom-field"></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 6. Invio Conferma (Sink) -->
-              <div class="dag-node absolute" id="node-invio-conferma" data-node-id="invio-conferma" style="left: 92%; top: 35%;">
-                <div class="node-border"></div>
-                <div class="node-content">
-                  <span class="node-type">{m.node_sink_type()}</span>
-                  <span class="node-title">{m.node_invio_conferma_title()}</span>
-                </div>
-                <div class="node-sketch-bubble">
-                  <div class="bubble-border"></div>
-                  <div class="bubble-content">
-                    <div>throughput: <span class="bubble-stat" id="bubble-stat-invio-conferma-throughput">...</span></div>
-                    <div>CPU: <span class="bubble-stat" id="bubble-stat-invio-conferma-cpu">...</span></div>
-                    <div>Mem: <span class="bubble-stat" id="bubble-stat-invio-conferma-mem">...</span></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 7. Salvataggio Audit (Post-Filter Sink) -->
-              <div class="dag-node absolute" id="node-salvataggio-audit-post" data-node-id="salvataggio-audit-post" style="left: 92%; top: 65%;">
-                <div class="node-border"></div>
-                <div class="node-content">
-                  <span class="node-type">{m.node_sink_type()}</span>
-                  <span class="node-title">{m.node_salvataggio_audit_title()}</span>
-                </div>
-                <div class="node-sketch-bubble">
-                  <div class="bubble-border"></div>
-                  <div class="bubble-content">
-                    <div>throughput: <span class="bubble-stat" id="bubble-stat-salvataggio-audit-post-throughput">...</span></div>
-                    <div>CPU: <span class="bubble-stat" id="bubble-stat-salvataggio-audit-post-cpu">...</span></div>
-                    <div>Mem: <span class="bubble-stat" id="bubble-stat-salvataggio-audit-post-mem">...</span></div>
-                  </div>
-                </div>
-              </div>
+              <!-- Dynamic HTML Nodes will be generated and positioned absolutely by JS -->
             </div>
           </div>
         </div>

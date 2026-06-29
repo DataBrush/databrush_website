@@ -975,3 +975,36 @@ body.theme-neobrutalist-dark .io-box {
   color: var(--text-color);
 }
 
+/* Scenario Selector Button custom styling */
+.scenario-btn {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  box-shadow: 4px 4px 0px #000000 !important;
+  transition: all 0.15s ease !important;
+}
+
+body.theme-neobrutalist-dark .scenario-btn {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  box-shadow: 4px 4px 0px #ffffff !important;
+}
+
+.scenario-btn:hover {
+  background-color: var(--chart-3) !important; /* bright yellow hover */
+  color: #000000 !important;
+}
+
+.scenario-btn.active {
+  background-color: var(--chart-1) !important; /* Renoir Purple */
+  color: #ffffff !important;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #000000 !important;
+}
+
+body.theme-neobrutalist-dark .scenario-btn.active {
+  background-color: var(--chart-2) !important; /* Databrush Mint Green */
+  color: #000000 !important;
+  box-shadow: 2px 2px 0px #ffffff !important;
+}
+
+

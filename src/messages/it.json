@@ -433,5 +433,10 @@
   "node_controlli_transazione_title": "Controlli Transazione",
   "node_salvataggio_audit_title": "Salvataggio Audit",
   "node_accetta_rifiuto_title": "Accetta / Rifiuto",
-  "node_invio_conferma_title": "Invio Conferma"
+  "node_invio_conferma_title": "Invio Conferma",
+  "db_scenario_label": "Scenario:",
+  "db_scenario_sub": "// Seleziona una demo di pipeline Renoir",
+  "db_scenario_financial": "Audit Finanziario",
+  "db_scenario_iot": "Fabbrica Intelligente IoT",
+  "db_scenario_cdn": "Analisi Web CDN"
 }

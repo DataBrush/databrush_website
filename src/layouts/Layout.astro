@@ -138,7 +138,7 @@ if (activePath.startsWith(`/${lang}/`)) {
         <nav class="hidden md:flex items-center gap-6">
           <a 
             href={getRelativeLocaleUrl(lang, '/')} 
-            class={`font-extrabold text-sm uppercase px-3 py-2 border-2 border-transparent hover:border-black hover:bg-white hover:neo-shadow transition-all whitespace-nowrap ${isRouteActive(`/${lang}/`) && !activePath.includes('renoir') && !activePath.includes('about') && !activePath.includes('contact') ? 'bg-color-chart-1 text-black neo-border-thin neo-shadow' : ''}`}
+            class={`font-extrabold text-sm uppercase px-3 py-2 border-2 border-transparent hover:border-black hover:bg-white hover:neo-shadow transition-all whitespace-nowrap ${isRouteActive(`/${lang}/`) && !activePath.includes('renoir') && !activePath.includes('about') && !activePath.includes('contact') && !activePath.includes('dashboard') && !activePath.includes('docs') ? 'bg-color-chart-1 text-black neo-border-thin neo-shadow' : ''}`}
           >
             Home
           </a>
