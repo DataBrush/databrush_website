@@ -1,0 +1,325 @@
+---
+import '../../theming.css';
+import { loadLocale } from '~/lib/i18n';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import { Menu, X, Globe, Cpu, BookOpen, Terminal, Mail, Info, FileText } from '@lucide/astro';
+
+interface Props {
+  metadata?: {
+    title?: string;
+    description?: string;
+  };
+}
+
+const { metadata } = Astro.props;
+
+// Detect current locale
+const lang = Astro.currentLocale || 'en';
+const m = loadLocale(lang);
+
+const siteTitle = metadata?.title ? `${metadata.title} | Databrush` : 'Databrush | High-Performance Data Infrastructure';
+const siteDesc = metadata?.description || m.hero_subtitle() || 'Rust-powered data analytics and edge computing solutions.';
+
+// Active path helper
+const activePath = Astro.url.pathname;
+const isRouteActive = (path: string) => {
+  if (path === '/') return activePath === '/' || activePath === '/en' || activePath === '/it' || activePath === '/en/' || activePath === '/it/';
+  return activePath.includes(path);
+};
+
+// Alternate language URL
+const otherLang = lang === 'en' ? 'it' : 'en';
+// Replace current language in path
+let alternatePath = activePath;
+if (activePath.startsWith(`/${lang}/`)) {
+  alternatePath = activePath.replace(`/${lang}/`, `/${otherLang}/`);
+} else if (activePath.startsWith(`/${lang}`)) {
+  alternatePath = activePath.replace(`/${lang}`, `/${otherLang}`);
+} else {
+  alternatePath = `/${otherLang}${activePath}`;
+}
+---
+
+<!DOCTYPE html>
+<html lang={lang} class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{siteTitle}</title>
+    <meta name="description" content={siteDesc} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+    <!-- Load Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style is:global>
+      /* Inject font definitions and override fallback colors */
+      :root {
+        font-family: 'Lexend', 'Space Grotesk', sans-serif;
+      }
+      
+      body {
+        font-family: 'Lexend', 'Space Grotesk', sans-serif;
+      }
+
+      code, pre {
+        font-family: 'Space Mono', monospace;
+      }
+
+      /* Neubrutalist style shadows and transitions */
+      .neo-border {
+        border: 4px solid #000000 !important;
+      }
+      .neo-border-thin {
+        border: 2px solid #000000 !important;
+      }
+      .neo-shadow {
+        box-shadow: 4px 4px 0px 0px #000000 !important;
+      }
+      .neo-shadow-lg {
+        box-shadow: 8px 8px 0px 0px #000000 !important;
+      }
+      .neo-hover-shift {
+        transition: transform 0.1s ease, box-shadow 0.1s ease;
+      }
+      .neo-hover-shift:hover {
+        transform: translate(-3px, -3px);
+        box-shadow: 7px 7px 0px 0px #000000 !important;
+      }
+      .neo-hover-shift:active {
+        transform: translate(1px, 1px);
+        box-shadow: 3px 3px 0px 0px #000000 !important;
+      }
+
+      /* Bright accent headers & highlighted text */
+      .highlight-purple {
+        background-color: var(--color-chart-1);
+        color: #000;
+        padding: 0 4px;
+        border: 2px solid #000;
+        box-shadow: 2px 2px 0px #000;
+      }
+      .highlight-green {
+        background-color: var(--color-chart-2);
+        color: #000;
+        padding: 0 4px;
+        border: 2px solid #000;
+        box-shadow: 2px 2px 0px #000;
+      }
+      .highlight-yellow {
+        background-color: var(--color-chart-3);
+        color: #000;
+        padding: 0 4px;
+        border: 2px solid #000;
+        box-shadow: 2px 2px 0px #000;
+      }
+      
+      /* Accordion styles */
+      .faq-details[open] {
+        background-color: #ffffff;
+      }
+    </style>
+  </head>
+  <body class="bg-background text-foreground min-h-screen flex flex-col antialiased selection:bg-black selection:text-white">
+    <!-- Neubrutalist Header / Navbar -->
+    <header class="sticky top-0 z-50 w-full bg-secondary-background border-b-4 border-black">
+      <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        
+        <!-- Logo Block -->
+        <a href={getRelativeLocaleUrl(lang, '/')} class="flex items-center gap-3 border-4 border-black px-4 py-2 neo-shadow neo-hover-shift text-black decoration-none">
+          <img src="/assets/databrush.svg" alt="Databrush Logo" class="w-8 h-8 object-contain" />
+          <span class="font-black text-2xl tracking-tighter uppercase">Databrush</span>
+          <span class="bg-black text-white px-2 py-0.5 text-xs font-bold font-mono">RENOIR</span>
+        </a>
+
+        <!-- Desktop Menu -->
+        <nav class="hidden md:flex items-center gap-6">
+          <a 
+            href={getRelativeLocaleUrl(lang, '/')} 
+            class={`font-extrabold text-sm uppercase px-3 py-2 border-2 border-transparent hover:border-black hover:bg-white hover:neo-shadow transition-all whitespace-nowrap ${isRouteActive(`/${lang}/`) && !activePath.includes('renoir') && !activePath.includes('about') && !activePath.includes('contact') ? 'bg-color-chart-1 text-black neo-border-thin neo-shadow' : ''}`}
+          >
+            Home
+          </a>
+          <a 
+            href={getRelativeLocaleUrl(lang, '/renoir/overview')} 
+            class={`font-extrabold text-sm uppercase px-3 py-2 border-2 border-transparent hover:border-black hover:bg-white hover:neo-shadow transition-all whitespace-nowrap ${isRouteActive('/renoir') ? 'bg-color-chart-1 text-black neo-border-thin neo-shadow' : ''}`}
+          >
+            {m.nav_renoir()}
+          </a>
+          <a 
+            href="/docs/" 
+            class={`font-extrabold text-sm uppercase px-3 py-2 border-2 border-transparent hover:border-black hover:bg-white hover:neo-shadow transition-all whitespace-nowrap ${isRouteActive('/docs') ? 'bg-color-chart-1 text-black neo-border-thin neo-shadow' : ''}`}
+          >
+            {m.nav_documentation()}
+          </a>
+          <a 
+            href={getRelativeLocaleUrl(lang, '/dashboard')} 
+            class={`font-extrabold text-sm uppercase px-3 py-2 border-2 border-transparent hover:border-black hover:bg-white hover:neo-shadow transition-all whitespace-nowrap ${isRouteActive('/dashboard') ? 'bg-color-chart-1 text-black neo-border-thin neo-shadow' : ''}`}
+          >
+            {m.nav_dashboard()}
+          </a>
+          <a 
+            href={getRelativeLocaleUrl(lang, '/about')} 
+            class={`font-extrabold text-sm uppercase px-3 py-2 border-2 border-transparent hover:border-black hover:bg-white hover:neo-shadow transition-all whitespace-nowrap ${isRouteActive('/about') ? 'bg-color-chart-1 text-black neo-border-thin neo-shadow' : ''}`}
+          >
+            {m.nav_about_us()}
+          </a>
+          <a 
+            href={getRelativeLocaleUrl(lang, '/contact')} 
+            class={`font-extrabold text-sm uppercase px-3 py-2 border-2 border-transparent hover:border-black hover:bg-white hover:neo-shadow transition-all whitespace-nowrap ${isRouteActive('/contact') ? 'bg-color-chart-1 text-black neo-border-thin neo-shadow' : ''}`}
+          >
+            {m.nav_contact()}
+          </a>
+        </nav>
+
+        <!-- Right Action Button & Lang Switcher -->
+        <div class="hidden md:flex items-center gap-4">
+          <!-- Language Switcher -->
+          <a href={alternatePath} class="flex items-center gap-1.5 font-bold font-mono text-xs uppercase bg-white border-2 border-black px-2.5 py-1.5 neo-shadow neo-hover-shift hover:bg-gray-100">
+            <Globe class="w-4 h-4" />
+            <span>{otherLang}</span>
+          </a>
+          
+          <!-- Book CTA -->
+          <a href={getRelativeLocaleUrl(lang, '/contact')} class="font-black text-sm uppercase bg-color-chart-2 px-4 py-2 border-4 border-black neo-shadow neo-hover-shift text-black">
+            {m.hero_action_1()}
+          </a>
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button id="mobile-menu-btn" class="md:hidden p-2 border-4 border-black bg-white text-black neo-shadow hover:bg-gray-100 neo-hover-shift" aria-label="Toggle Menu">
+          <Menu id="menu-icon" class="w-6 h-6" />
+          <X id="close-icon" class="w-6 h-6 hidden" />
+        </button>
+      </div>
+
+      <!-- Mobile Menu Dropdown -->
+      <div id="mobile-menu" class="hidden md:hidden border-t-4 border-black bg-secondary-background">
+        <div class="px-4 py-4 space-y-3 font-extrabold text-lg uppercase">
+          <a href={getRelativeLocaleUrl(lang, '/')} class="block p-3 border-2 border-black bg-white neo-shadow text-black">
+            Home
+          </a>
+          <a href={getRelativeLocaleUrl(lang, '/renoir/overview')} class="block p-3 border-2 border-black bg-white neo-shadow text-black">
+            {m.nav_renoir()}
+          </a>
+          <a href="/docs/" class="block p-3 border-2 border-black bg-white neo-shadow text-black">
+            {m.nav_documentation()}
+          </a>
+          <a href={getRelativeLocaleUrl(lang, '/dashboard')} class="block p-3 border-2 border-black bg-white neo-shadow text-black">
+            {m.nav_dashboard()}
+          </a>
+          <a href={getRelativeLocaleUrl(lang, '/about')} class="block p-3 border-2 border-black bg-white neo-shadow text-black">
+            {m.nav_about_us()}
+          </a>
+          <a href={getRelativeLocaleUrl(lang, '/contact')} class="block p-3 border-2 border-black bg-white neo-shadow text-black">
+            {m.nav_contact()}
+          </a>
+          <div class="flex items-center justify-between pt-2">
+            <a href={alternatePath} class="flex items-center gap-1.5 font-bold font-mono text-xs uppercase bg-white border-2 border-black px-3 py-2 neo-shadow text-black">
+              <Globe class="w-4 h-4" />
+              <span>Switch to: {otherLang}</span>
+            </a>
+            <a href={getRelativeLocaleUrl(lang, '/contact')} class="font-black text-sm uppercase bg-color-chart-2 px-4 py-2.5 border-2 border-black neo-shadow text-black">
+              {m.hero_action_1()}
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow w-full">
+      <slot />
+    </main>
+
+    <!-- Neubrutalist Footer -->
+    <footer class="bg-secondary-background border-t-8 border-black text-black">
+      <!-- Footer Sections -->
+      <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-1 md:grid-cols-4 gap-8">
+        
+        <!-- Logo Column -->
+        <div class="flex flex-col gap-4">
+          <div class="border-4 border-black px-4 py-3 neo-shadow flex items-center gap-2.5 w-fit">
+            <img src="/assets/databrush.svg" alt="Databrush Logo" class="w-8 h-8 object-contain bg-white p-0.5 border-black" />
+            <span class="font-black text-3xl tracking-tighter uppercase text-black">Databrush</span>
+          </div>
+          <p class="font-mono text-sm leading-relaxed text-gray-700">
+            Enterprise Data Infrastructure, Engineered by Research. Spin-off del Politecnico di Milano.
+          </p>
+          <div class="flex gap-2">
+            <a href={alternatePath} class="flex items-center gap-1.5 font-bold font-mono text-xs uppercase bg-white border-2 border-black px-3 py-1.5 neo-shadow hover:bg-gray-100">
+              <Globe class="w-4 h-4" />
+              <span>{lang === 'en' ? 'Versione Italiana' : 'English Version'}</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Links Column 1: Product -->
+        <div class="border-4 border-black p-6 bg-white neo-shadow">
+          <h4 class="font-black text-xl uppercase mb-4 border-b-2 border-black pb-2 bg-color-chart-3 text-black px-2 -mx-2">
+            {m.nav_products()}
+          </h4>
+          <ul class="space-y-2 font-bold text-sm">
+            <li><a href={getRelativeLocaleUrl(lang, '/renoir/overview')} class="hover:underline flex items-center gap-1"><Cpu class="w-4 h-4" /> {m.nav_renoir()} {m.nav_overview()}</a></li>
+            <li><a href="/docs/" class="hover:underline flex items-center gap-1"><BookOpen class="w-4 h-4" /> {m.nav_documentation()}</a></li>
+            <li><a href={getRelativeLocaleUrl(lang, '/dashboard')} class="hover:underline flex items-center gap-1"><Terminal class="w-4 h-4" /> {m.nav_dashboard()}</a></li>
+          </ul>
+        </div>
+
+        <!-- Links Column 2: Company -->
+        <div class="border-4 border-black p-6 bg-white neo-shadow">
+          <h4 class="font-black text-xl uppercase mb-4 border-b-2 border-black pb-2 bg-color-chart-1 text-black px-2 -mx-2">
+            {m.footer_databrush()}
+          </h4>
+          <ul class="space-y-2 font-bold text-sm">
+            <li><a href={getRelativeLocaleUrl(lang, '/about')} class="hover:underline flex items-center gap-1"><Info class="w-4 h-4" /> {m.nav_about_us()}</a></li>
+            <li><a href={getRelativeLocaleUrl(lang, '/contact')} class="hover:underline flex items-center gap-1"><Mail class="w-4 h-4" /> {m.nav_contact()}</a></li>
+            <li><a href="mailto:info@databrush.it" class="hover:underline flex items-center gap-1"><FileText class="w-4 h-4" /> info@databrush.it</a></li>
+          </ul>
+        </div>
+
+        <!-- Links Column 3: Legal & ACM -->
+        <div class="border-4 border-black p-6 bg-white neo-shadow">
+          <h4 class="font-black text-xl uppercase mb-4 border-b-2 border-black pb-2 bg-color-chart-2 text-black px-2 -mx-2">
+            Legal
+          </h4>
+          <ul class="space-y-2 font-bold text-sm">
+            <li><a href="#" class="hover:underline">{m.footer_privacy_policy()}</a></li>
+            <li><a href="#" class="hover:underline">{m.footer_cookie_policy()}</a></li>
+            <li class="pt-2 font-mono text-xs text-gray-500">
+              ACM DEBS 1st Place (2023)<br/>
+              Politecnico di Milano Spin-off
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Footer Bottom -->
+      <div class="bg-black text-white py-6">
+        <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-xs">
+          <p>© {new Date().getFullYear()} Databrush S.r.l. All rights reserved.</p>
+          <p class="text-gray-400">Handcrafted in Milan with Rust & Astro. Neubrutalism v1.0</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Interactive Scripts -->
+    <script>
+      const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const menuIcon = document.getElementById('menu-icon');
+      const closeIcon = document.getElementById('close-icon');
+
+      if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.addEventListener('click', () => {
+          mobileMenu.classList.toggle('hidden');
+          menuIcon?.classList.toggle('hidden');
+          closeIcon?.classList.toggle('hidden');
+        });
+      }
+    </script>
+  </body>
+</html>

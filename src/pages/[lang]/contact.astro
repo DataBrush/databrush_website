@@ -1,0 +1,186 @@
+---
+import Layout from '~/layouts/Layout.astro';
+import { loadLocale, getLanguagePaths } from '~/lib/i18n';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import { Mail, MessageSquare, Shield, HelpCircle } from '@lucide/astro';
+
+export function getStaticPaths() {
+  return getLanguagePaths();
+}
+
+const { lang } = Astro.params;
+const m = loadLocale(lang);
+
+const metadata = {
+  title: m.contact_page_title(),
+  description: m.contact_hero_subtitle()
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- Hero Section -->
+  <section class="py-16 bg-background border-b-4 border-black">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center gap-4">
+      <span class="bg-color-chart-2 text-black font-black font-mono text-xs uppercase px-3 py-1.5 border-2 border-black neo-shadow">
+        {m.contact_tagline()}
+      </span>
+      <h1 class="text-4xl sm:text-6xl font-black uppercase tracking-tight text-black">
+        {m.contact_hero_title()}
+      </h1>
+      <p class="text-lg sm:text-xl font-bold text-gray-700 max-w-3xl leading-relaxed">
+        {m.contact_hero_subtitle()}
+      </p>
+    </div>
+  </section>
+
+  <!-- Content & Form Grid -->
+  <section class="py-20 bg-secondary-background border-b-4 border-black">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12">
+      
+      <!-- Left Column: Support Cards & Info -->
+      <div class="lg:col-span-5 flex flex-col gap-8">
+        
+        <!-- General Info Alert -->
+        <div class="border-4 border-black p-6 bg-color-chart-3 neo-shadow text-black">
+          <h3 class="font-black text-xl uppercase mb-3 flex items-center gap-2">
+            <HelpCircle class="w-6 h-6" />
+            <span>Need Quick Answers?</span>
+          </h3>
+          <div class="font-bold text-sm leading-relaxed">
+            <Fragment set:html={m.contact_form_subtitle()} />
+          </div>
+        </div>
+
+        <!-- Support Cards -->
+        <div class="flex flex-col gap-6">
+          <h3 class="font-black text-2xl uppercase tracking-tight text-black">
+            {m.contact_support_title()}
+          </h3>
+
+          {[
+            {
+              title: m.contact_support_item_1_title(),
+              desc: m.contact_support_item_1_description(),
+              icon: MessageSquare,
+              color: 'bg-color-chart-1'
+            },
+            {
+              title: m.contact_support_item_2_title(),
+              desc: m.contact_support_item_2_description(),
+              icon: Mail,
+              color: 'bg-color-chart-2'
+            },
+            {
+              title: m.contact_support_item_3_title(),
+              desc: m.contact_support_item_3_description(),
+              icon: Shield,
+              color: 'bg-color-chart-4'
+            }
+          ].map(support => (
+            <div class="border-4 border-black p-6 bg-white neo-shadow flex gap-4">
+              <div class={`w-12 h-12 border-4 border-black flex items-center justify-center shrink-0 ${support.color} neo-shadow`}>
+                <support.icon class="w-6 h-6 text-black" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <h4 class="font-black text-lg uppercase text-black">{support.title}</h4>
+                <p class="font-bold text-sm text-gray-600 leading-relaxed">{support.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+      </div>
+
+      <!-- Right Column: Contact Form -->
+      <div class="lg:col-span-7">
+        <div class="border-4 border-black p-8 sm:p-10 bg-white neo-shadow-lg text-black">
+          
+          <h2 class="font-black text-3xl sm:text-4xl uppercase text-black mb-8 border-b-4 border-black pb-4">
+            {m.contact_title()}
+          </h2>
+
+          <form 
+            method="post" 
+            action="https://forms.un-static.com/forms/f92a74143ea36998a842bb838854714e148f4379"
+            class="flex flex-col gap-6"
+          >
+            <!-- Name Input -->
+            <div class="flex flex-col gap-2">
+              <label for="name" class="font-black text-sm uppercase text-black">
+                {m.contact_input_name_label()}
+              </label>
+              <input 
+                type="text" 
+                name="name" 
+                id="name" 
+                placeholder={m.contact_input_name_placeholder()}
+                required
+                class="border-4 border-black px-4 py-3 font-bold text-black placeholder:text-gray-400 bg-white focus:outline-none focus:ring-4 focus:ring-black rounded-none"
+              />
+            </div>
+
+            <!-- Email Input -->
+            <div class="flex flex-col gap-2">
+              <label for="email" class="font-black text-sm uppercase text-black">
+                {m.contact_input_email_label()}
+              </label>
+              <input 
+                type="email" 
+                name="email" 
+                id="email" 
+                placeholder={m.contact_input_email_placeholder()}
+                required
+                class="border-4 border-black px-4 py-3 font-bold text-black placeholder:text-gray-400 bg-white focus:outline-none focus:ring-4 focus:ring-black rounded-none"
+              />
+            </div>
+
+            <!-- Message Textarea -->
+            <div class="flex flex-col gap-2">
+              <label for="message" class="font-black text-sm uppercase text-black">
+                {m.contact_textarea_label()}
+              </label>
+              <textarea 
+                name="message" 
+                id="message" 
+                rows="5"
+                placeholder={m.contact_textarea_placeholder()}
+                required
+                class="border-4 border-black px-4 py-3 font-bold text-black placeholder:text-gray-400 bg-white focus:outline-none focus:ring-4 focus:ring-black rounded-none resize-y"
+              ></textarea>
+            </div>
+
+            <!-- Privacy Disclaimer Checkbox -->
+            <div class="flex items-start gap-3 mt-2">
+              <input 
+                type="checkbox" 
+                name="disclaimer" 
+                id="disclaimer" 
+                required
+                class="w-5 h-5 border-4 border-black accent-black shrink-0 cursor-pointer rounded-none mt-0.5"
+              />
+              <label for="disclaimer" class="font-bold text-xs text-gray-700 leading-relaxed cursor-pointer select-none">
+                {m.contact_disclaimer_label()}
+              </label>
+            </div>
+
+            <!-- Bottom Disclaimer & Button -->
+            <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-6 border-t-2 border-black pt-6">
+              <p class="font-mono text-xs text-gray-500 max-w-xs text-center sm:text-left leading-relaxed">
+                * {m.contact_description()}
+              </p>
+              <button 
+                type="submit"
+                class="w-full sm:w-auto font-black text-lg uppercase bg-color-chart-2 text-black px-8 py-4 border-4 border-black neo-shadow neo-hover-shift cursor-pointer"
+              >
+                {m.contact_button()}
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+</Layout>

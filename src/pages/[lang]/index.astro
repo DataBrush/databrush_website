@@ -1,0 +1,361 @@
+---
+import Layout from '~/layouts/Layout.astro';
+import { loadLocale, getLanguagePaths } from '~/lib/i18n';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import { 
+  Calendar, 
+  ArrowRight, 
+  Award, 
+  Users, 
+  BookOpen, 
+  Star, 
+  Download, 
+  FileText,
+  AlertTriangle, 
+  Zap, 
+  CheckCircle,
+  HelpCircle,
+  TrendingUp,
+  Cpu,
+  Layers,
+  ShieldCheck
+} from '@lucide/astro';
+
+export function getStaticPaths() {
+  return getLanguagePaths();
+}
+
+const { lang } = Astro.params;
+const m = loadLocale(lang);
+
+const metadata = {
+  title: 'Home | Fast, Efficient, Private Data Infrastructure',
+  description: m.hero_subtitle()
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- Hero Section -->
+  <section class="relative min-h-[85vh] w-full flex items-center justify-center overflow-hidden py-12 bg-background border-b-4 border-black">
+    <!-- Neubrutalist Grid Background -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#00000012_1px,transparent_1px),linear-gradient(to_bottom,#00000012_1px,transparent_1px)] bg-[size:30px_30px] -z-10"></div>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center gap-8">
+      <!-- Tagline Badge -->
+      <span class="bg-color-chart-1 text-black font-black font-mono text-sm px-4 py-2 border-4 border-black neo-shadow uppercase tracking-wider">
+        {m.credibility_tagline()}
+      </span>
+
+      <!-- Main Headline -->
+      <h1 class="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tighter text-black uppercase leading-none max-w-5xl">
+        <Fragment set:html={m.hero_title()} />
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="text-lg sm:text-2xl font-semibold max-w-3xl text-gray-800 leading-relaxed">
+        <Fragment set:html={m.hero_subtitle()} />
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-6 mt-4 w-full sm:w-auto">
+        <a 
+          href={getRelativeLocaleUrl(lang, '/contact')} 
+          class="flex items-center justify-center gap-2 font-black text-xl uppercase bg-color-chart-2 text-black px-8 py-5 border-4 border-black neo-shadow neo-hover-shift text-center"
+        >
+          <Calendar class="w-6 h-6" />
+          <span>{m.hero_action_1()}</span>
+        </a>
+        <a 
+          href={getRelativeLocaleUrl(lang, '/renoir/overview')} 
+          class="flex items-center justify-center gap-2 font-black text-xl uppercase bg-white text-black px-8 py-5 border-4 border-black neo-shadow neo-hover-shift text-center hover:bg-gray-50"
+        >
+          <span>Learn about Renoir</span>
+          <ArrowRight class="w-6 h-6" />
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Spin-Off Credibility & Stats -->
+  <section class="py-20 border-b-4 border-black bg-secondary-background">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Academic Bio Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center mb-16">
+        <div class="lg:col-span-8 border-4 border-black p-8 bg-color-chart-3 neo-shadow">
+          <div class="flex items-center gap-3 mb-4">
+            <Award class="w-8 h-8 text-black" />
+            <h2 class="font-black text-3xl sm:text-4xl uppercase text-black">
+              Politecnico di Milano Spin-off
+            </h2>
+          </div>
+          <p class="text-lg font-bold leading-relaxed text-black">
+            <Fragment set:html={m.about_us_subtitle()} />
+          </p>
+        </div>
+        
+        <div class="lg:col-span-4 border-4 border-black p-8 bg-white neo-shadow flex flex-col items-center justify-center text-center gap-4 h-full min-h-[220px]">
+          <span class="font-extrabold text-xs uppercase tracking-widest text-gray-500 font-mono">Affiliation</span>
+          <img src="/assets/spinoff.webp" alt="Polimi Spin-off Logo" class="h-16 object-contain border-2 border-black p-2 bg-gray-50 neo-shadow" />
+          <span class="font-bold text-sm text-gray-700">ACM DEBS Grand Challenge Winner</span>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {[
+          { amount: '1º', title: m.stats_item_1_title(), color: 'bg-color-chart-1' },
+          { amount: '>1000', title: m.stats_item_2_title(), color: 'bg-color-chart-2' },
+          { amount: '83', title: m.stats_item_3_title(), color: 'bg-color-chart-3' },
+          { amount: '4', title: m.stats_item_4_title(), color: 'bg-color-chart-4' }
+        ].map(stat => (
+          <div class="border-4 border-black p-6 bg-white neo-shadow flex flex-col justify-between">
+            <span class={`text-4xl sm:text-6xl font-black uppercase text-black inline-block w-fit px-3 py-1 border-2 border-black ${stat.color}`}>
+              {stat.amount}
+            </span>
+            <span class="font-black text-md sm:text-lg uppercase text-black mt-6 leading-tight">
+              {stat.title}
+            </span>
+          </div>
+        ))}
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Pain Points Section (Why Databrush?) -->
+  <section class="py-20 bg-background border-b-4 border-black">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Header -->
+      <div class="text-center mb-16 max-w-3xl mx-auto">
+        <h2 class="text-4xl sm:text-6xl font-black uppercase tracking-tight text-black mb-4">
+          {m.pain_points_title()}
+        </h2>
+        <p class="text-lg sm:text-xl font-extrabold text-gray-700 font-mono">
+          // {m.pain_points_subtitle()}
+        </p>
+      </div>
+
+      <!-- Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {[
+          {
+            title: m.pain_point_1_title(),
+            desc: m.pain_point_1_description(),
+            icon: AlertTriangle,
+            color: 'bg-color-chart-4'
+          },
+          {
+            title: m.pain_point_2_title(),
+            desc: m.pain_point_2_description(),
+            icon: ShieldCheck,
+            color: 'bg-color-chart-2'
+          },
+          {
+            title: m.pain_point_3_title(),
+            desc: m.pain_point_3_description(),
+            icon: Layers,
+            color: 'bg-color-chart-1'
+          }
+        ].map(item => (
+          <div class="border-4 border-black p-8 bg-white neo-shadow flex flex-col gap-6">
+            <div class={`w-14 h-14 border-4 border-black flex items-center justify-center ${item.color} neo-shadow`}>
+              <item.icon class="w-8 h-8 text-black" />
+            </div>
+            <h3 class="font-black text-2xl uppercase tracking-tight text-black">
+              {item.title}
+            </h3>
+            <p class="font-bold text-gray-700 leading-relaxed">
+              {item.desc}
+            </p>
+          </div>
+        ))}
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Solution Section (The Databrush Method) -->
+  <section class="py-20 bg-secondary-background border-b-4 border-black">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Header -->
+      <div class="text-center mb-16 max-w-3xl mx-auto">
+        <h2 class="text-4xl sm:text-6xl font-black uppercase tracking-tight text-black mb-4">
+          {m.solution_title()}
+        </h2>
+        <p class="text-lg sm:text-xl font-extrabold text-gray-700 font-mono">
+          // {m.solution_subtitle()}
+        </p>
+      </div>
+
+      <!-- Linear Steps Layout -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+        {[
+          {
+            step: '01',
+            title: m.solution_step_1_title(),
+            desc: m.solution_step_1_description(),
+            color: 'bg-color-chart-3'
+          },
+          {
+            step: '02',
+            title: m.solution_step_2_title(),
+            desc: m.solution_step_2_description(),
+            color: 'bg-color-chart-1'
+          },
+          {
+            step: '03',
+            title: m.solution_step_3_title(),
+            desc: m.solution_step_3_description(),
+            color: 'bg-color-chart-2'
+          }
+        ].map(item => (
+          <div class="border-4 border-black p-8 bg-white neo-shadow flex flex-col gap-6 relative">
+            <span class={`absolute -top-6 -left-6 border-4 border-black font-black text-xl px-3 py-1.5 ${item.color} neo-shadow`}>
+              {item.step}
+            </span>
+            <h3 class="font-black text-2xl uppercase tracking-tight text-black mt-4">
+              {item.title}
+            </h3>
+            <p class="font-bold text-gray-700 leading-relaxed">
+              {item.desc}
+            </p>
+          </div>
+        ))}
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Engine Comparison Section -->
+  <section class="py-20 bg-background border-b-4 border-black">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Header -->
+      <div class="text-center mb-16 max-w-3xl mx-auto">
+        <h2 class="text-4xl sm:text-6xl font-black uppercase tracking-tight text-black mb-4">
+          {m.engine_title()}
+        </h2>
+        <p class="text-lg sm:text-xl font-extrabold text-gray-700 font-mono">
+          // {m.engine_subtitle()}
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <!-- Old Way Card -->
+        <div class="border-4 border-black p-8 bg-white neo-shadow-lg flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-8 border-b-4 border-black pb-4">
+              <h3 class="font-black text-3xl uppercase text-black">{m.engine_old_way_title()}</h3>
+              <span class="bg-color-chart-4 text-white font-black text-xs uppercase px-3 py-1 border-2 border-black">
+                RESOURCE HEAVY
+              </span>
+            </div>
+            <ul class="space-y-4">
+              {[m.engine_old_way_item_1(), m.engine_old_way_item_2(), m.engine_old_way_item_3()].map(item => (
+                <li class="flex items-center gap-3 font-bold text-lg text-gray-800">
+                  <span class="bg-red-200 border-2 border-black p-1 text-red-700 rounded-none inline-block">❌</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div class="mt-8 pt-6 border-t-2 border-gray-200 font-mono text-sm text-gray-500">
+            * Memory allocation scales linearly with cluster sizes.
+          </div>
+        </div>
+
+        <!-- The Renoir Way Card -->
+        <div class="border-4 border-black p-8 bg-color-chart-2 neo-shadow-lg flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-8 border-b-4 border-black pb-4">
+              <h3 class="font-black text-3xl uppercase text-black">{m.engine_renoir_way_title()}</h3>
+              <span class="bg-black text-white font-black text-xs uppercase px-3 py-1 border-2 border-black">
+                10X EFFICIENT
+              </span>
+            </div>
+            <ul class="space-y-4">
+              {[m.engine_renoir_way_item_1(), m.engine_renoir_way_item_2(), m.engine_renoir_way_item_3()].map(item => (
+                <li class="flex items-center gap-3 font-black text-lg text-black">
+                  <span class="bg-white border-2 border-black p-1 text-black rounded-none inline-block">⚡</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div class="mt-8 pt-6 border-t-2 border-black font-mono text-sm text-black">
+            * Native compiled Rust executable. Zero JVM runtime overhead.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="FAQ" class="py-20 bg-secondary-background border-b-4 border-black">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      
+      <!-- Section Header -->
+      <div class="text-center mb-16">
+        <h2 class="text-4xl sm:text-6xl font-black uppercase tracking-tight text-black mb-4">
+          {m.faq_title()}
+        </h2>
+        <p class="text-lg sm:text-xl font-extrabold text-gray-700 font-mono">
+          // Have questions? We've got answers.
+        </p>
+      </div>
+
+      <!-- FAQ Accordions -->
+      <div class="space-y-6">
+        {[
+          { q: m.faq_item_1_title(), a: m.faq_item_1_description() },
+          { q: m.faq_item_2_title(), a: m.faq_item_2_description() },
+          { q: m.faq_item_3_title(), a: m.faq_item_3_description() },
+          { q: m.faq_item_4_title(), a: m.faq_item_4_description() },
+          { q: m.faq_item_5_title(), a: m.faq_item_5_description() },
+          { q: m.faq_item_6_title(), a: m.faq_item_6_description() }
+        ].map((faq, idx) => (
+          <details class="faq-details border-4 border-black bg-white neo-shadow transition-all group">
+            <summary class="flex items-center justify-between p-6 cursor-pointer font-black text-lg uppercase select-none list-none text-black">
+              <span>{faq.q}</span>
+              <span class="text-2xl font-mono leading-none transition-transform group-open:rotate-45">+</span>
+            </summary>
+            <div class="p-6 pt-0 border-t-2 border-black font-bold text-gray-800 leading-relaxed bg-white">
+              <Fragment set:html={faq.a} />
+            </div>
+          </details>
+        ))}
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-24 bg-color-chart-1 border-b-4 border-black">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 text-center flex flex-col items-center gap-8">
+      <h2 class="text-5xl sm:text-7xl font-black uppercase text-black leading-none tracking-tighter">
+        {m.cta_title()}
+      </h2>
+      <p class="text-xl sm:text-2xl font-bold text-black max-w-3xl">
+        <Fragment set:html={m.cta_subtitle()} />
+      </p>
+      <div class="flex flex-col sm:flex-row gap-6 mt-4 w-full sm:w-auto">
+        <a 
+          href="/docs/" 
+          class="font-black text-xl uppercase bg-black text-white px-8 py-4 border-4 border-black neo-shadow neo-hover-shift hover:bg-gray-900"
+        >
+          {m.renoir_hero_action_1()}
+        </a>
+        <a 
+          href={getRelativeLocaleUrl(lang, '/contact')} 
+          class="font-black text-xl uppercase bg-white text-black px-8 py-4 border-4 border-black neo-shadow neo-hover-shift hover:bg-gray-100"
+        >
+          {m.renoir_pricing_enterprise_cta()}
+        </a>
+      </div>
+    </div>
+  </section>
+</Layout>

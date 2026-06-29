@@ -1,0 +1,559 @@
+---
+import fs from 'fs';
+import path from 'path';
+import { marked } from 'marked';
+import Layout from '~/layouts/Layout.astro';
+import { ChevronRight, Book, Play, Compass, Code, Terminal, Layers } from '@lucide/astro';
+
+export async function getStaticPaths() {
+  return [
+    { params: { slug: undefined } },
+    { params: { slug: 'getting-started/install' } },
+    { params: { slug: 'getting-started/jupyter' } },
+    { params: { slug: 'getting-started/flink-migration' } },
+    { params: { slug: 'user-guide/core-concepts' } },
+    { params: { slug: 'user-guide/tokio' } },
+    { params: { slug: 'user-guide/connectors' } },
+    { params: { slug: 'user-guide/watermarks' } },
+    { params: { slug: 'user-guide/deployment' } },
+    { params: { slug: 'user-guide/examples' } },
+    { params: { slug: 'user-guide/internals' } },
+    { params: { slug: 'user-guide/operators/sequential' } },
+    { params: { slug: 'user-guide/operators/reduction' } },
+    { params: { slug: 'user-guide/operators/windows' } },
+    { params: { slug: 'user-guide/operators/partitioning' } },
+    { params: { slug: 'user-guide/operators/multistream' } },
+    { params: { slug: 'user-guide/operators/iterative' } },
+    { params: { slug: 'user-guide/operators/networking' } },
+    { params: { slug: 'appendix/editor' } }
+  ];
+}
+
+const { slug } = Astro.params;
+
+// Resolve target markdown file path
+const docFileName = slug ? `${slug}.md` : 'index.md';
+const filePath = path.resolve(`./docs/${docFileName}`);
+
+let title = 'Documentation';
+let contentHtml = '';
+let pageHeaders: { depth: number; text: string; slugId: string; }[] = [];
+
+try {
+  const rawContent = fs.readFileSync(filePath, 'utf-8');
+  let markdown = rawContent;
+
+
+  // Extract MkDocs/Markdown tabs e.g. === "Linux & macOS"
+  // We will replace tabs with simple text sections to make sure it renders cleanly.
+  markdown = markdown.replace(/=== "([^"]+)"/g, '\n#### $1\n');
+
+  // Strip simple Frontmatter
+  if (rawContent.startsWith('---')) {
+    const parts = rawContent.split('---');
+    if (parts.length >= 3) {
+      markdown = parts.slice(2).join('---');
+    }
+  }
+
+  // Pre-process HTML divs with markdown="1" to allow parsing of markdown content inside them
+  const divPlaceholders: any[] = [];
+  let divCounter = 0;
+  const tagRegex = /(<div[^>]*markdown="?1"?[^>]*>|<\/div>)/gi;
+  const matches = [...markdown.matchAll(tagRegex)];
+  const divReplacements = new Array(markdown.length).fill(null);
+  const openStack: number[] = [];
+
+  for (const match of matches) {
+    const text = match[0];
+    const start = match.index || 0;
+    const end = start + text.length;
+
+    if (text.toLowerCase().startsWith('<div')) {
+      const id = divCounter++;
+      openStack.push(id);
+      divPlaceholders.push({ id, tag: text, type: 'open' });
+      divReplacements[start] = { end, replacement: `<!--DIV_OPEN_${id}-->` };
+    } else {
+      if (openStack.length > 0) {
+        const id = openStack.pop()!;
+        divPlaceholders.push({ id, tag: '</div>', type: 'close' });
+        divReplacements[start] = { end, replacement: `<!--DIV_CLOSE_${id}-->` };
+      }
+    }
+  }
+
+  let processedMarkdown = '';
+  let lastIndex = 0;
+  for (let i = 0; i < markdown.length; i++) {
+    const repl = divReplacements[i];
+    if (repl) {
+      processedMarkdown += markdown.slice(lastIndex, i) + repl.replacement;
+      i = repl.end - 1;
+      lastIndex = repl.end;
+    }
+  }
+  processedMarkdown += markdown.slice(lastIndex);
+  markdown = processedMarkdown;
+
+  // Find first H1 for the page title
+  const h1Match = markdown.match(/^#\s+(.+)$/m);
+  if (h1Match) {
+    title = h1Match[1];
+  }
+
+  // Extract headings (ignoring code blocks)
+  const cleanMarkdown = markdown.replace(/```[\s\S]*?```/g, '');
+  const headingRegex = /^(##+)\s+(.+)$/gm;
+  let match;
+  while ((match = headingRegex.exec(cleanMarkdown)) !== null) {
+    const depth = match[1].length;
+    if (depth === 2 || depth === 3) {
+      const text = match[2].replace(/<[^>]*>/g, '').trim();
+      const slugId = text
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-');
+      pageHeaders.push({ depth, text, slugId });
+    }
+  }
+
+  // Custom renderer to add IDs to headings
+  const customRenderer = new marked.Renderer();
+  customRenderer.heading = function(arg1: any, arg2: any) {
+    let text = "";
+    let level = 2;
+    if (typeof arg1 === 'object' && arg1 !== null) {
+      text = arg1.text || "";
+      level = arg1.level || 2;
+    } else {
+      text = arg1 || "";
+      level = arg2 || 2;
+    }
+    const cleanText = text.replace(/<[^>]*>/g, '');
+    const slugId = cleanText
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-');
+    return `<h${level} id="${slugId}">${text}</h${level}>`;
+  };
+
+  contentHtml = await marked.parse(markdown, { renderer: customRenderer });
+
+  // Restore the original HTML div tags
+  for (const item of divPlaceholders) {
+    if (item.type === 'open') {
+      contentHtml = contentHtml.replaceAll(`<!--DIV_OPEN_${item.id}-->`, item.tag);
+    } else {
+      contentHtml = contentHtml.replaceAll(`<!--DIV_CLOSE_${item.id}-->`, item.tag);
+    }
+  }
+} catch (err) {
+  console.error(err);
+  contentHtml = `<p>Error loading document: ${docFileName}</p>`;
+}
+
+// Sidebar Structure
+const sidebar = [
+  {
+    title: 'Overview',
+    icon: Compass,
+    links: [
+      { text: 'Welcome to Renoir', path: '/docs/' }
+    ]
+  },
+  {
+    title: 'Getting Started',
+    icon: Play,
+    links: [
+      { text: 'Installation & Setup', path: '/docs/getting-started/install/' },
+      { text: 'Jupyter Notebook', path: '/docs/getting-started/jupyter/' },
+      { text: 'Migrate from Flink', path: '/docs/getting-started/flink-migration/' }
+    ]
+  },
+  {
+    title: 'User Guide',
+    icon: Book,
+    links: [
+      { text: 'Core Concepts', path: '/docs/user-guide/core-concepts/' },
+      { text: 'Tokio Integration', path: '/docs/user-guide/tokio/' },
+      { text: 'Connectors', path: '/docs/user-guide/connectors/' },
+      { text: 'Watermarks', path: '/docs/user-guide/watermarks/' },
+      { text: 'Deployment', path: '/docs/user-guide/deployment/' },
+      { text: 'Code Examples', path: '/docs/user-guide/examples/' },
+      { text: 'Internals', path: '/docs/user-guide/internals/' }
+    ]
+  },
+  {
+    title: 'Operators',
+    icon: Code,
+    links: [
+      { text: 'Sequential', path: '/docs/user-guide/operators/sequential/' },
+      { text: 'Reduction', path: '/docs/user-guide/operators/reduction/' },
+      { text: 'Windows', path: '/docs/user-guide/operators/windows/' },
+      { text: 'Partitioning', path: '/docs/user-guide/operators/partitioning/' },
+      { text: 'Multistream', path: '/docs/user-guide/operators/multistream/' },
+      { text: 'Iterative', path: '/docs/user-guide/operators/iterative/' },
+      { text: 'Networking', path: '/docs/user-guide/operators/networking/' }
+    ]
+  },
+  {
+    title: 'Appendix',
+    icon: Terminal,
+    links: [
+      { text: 'Editor Setup', path: '/docs/appendix/editor/' }
+    ]
+  }
+];
+
+// Active Link helper
+const currentPath = Astro.url.pathname;
+const isSidebarActive = (path: string) => {
+  // Normalize trailing slash matching
+  const normPath = path.endsWith('/') ? path : `${path}/`;
+  const normCurrent = currentPath.endsWith('/') ? currentPath : `${currentPath}/`;
+  return normCurrent === normPath;
+};
+
+const metadata = {
+  title: `${title} | Renoir Docs`,
+  description: `Technical documentation for Renoir. Page: ${title}.`
+};
+---
+
+<Layout metadata={metadata}>
+  <div class="max-w-none w-full px-4 sm:px-8 lg:px-12 py-12">
+    
+    <!-- Mobile Sidebar Toggle -->
+    <div class="block lg:hidden mb-6">
+      <button 
+        id="toggle-docs-sidebar"
+        class="w-full flex items-center justify-between font-black text-sm uppercase bg-color-chart-3 text-black px-4 py-3 border-4 border-black neo-shadow"
+      >
+        <span>Toggle Documentation Menu</span>
+        <ChevronRight class="w-5 h-5 transition-transform" id="sidebar-toggle-chevron" />
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Left Column: Sidebar -->
+      <aside 
+        id="docs-sidebar"
+        class="hidden lg:block lg:col-span-3 sticky top-24 max-h-[80vh] overflow-y-auto border-4 border-black bg-white neo-shadow p-6 space-y-8"
+      >
+        {sidebar.map(section => (
+          <div class="space-y-3">
+            <h3 class="font-black text-md uppercase tracking-wide text-black border-b-2 border-black pb-1.5 flex items-center gap-2 bg-gray-50 px-2 -mx-2">
+              <section.icon class="w-4 h-4 text-black" />
+              <span>{section.title}</span>
+            </h3>
+            <ul class="space-y-1">
+              {section.links.map(link => (
+                <li>
+                  <a 
+                    href={link.path}
+                    class={`block text-sm font-bold p-2 border-2 transition-all border-transparent ${
+                      isSidebarActive(link.path) 
+                        ? 'bg-color-chart-1 text-black border-black neo-shadow shadow-[2px_2px_0px_#000]' 
+                        : 'text-gray-700 hover:text-black hover:bg-gray-50'
+                    }`}
+                  >
+                    {link.text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </aside>
+
+      <!-- Center Column: Content -->
+      <article class="col-span-1 lg:col-span-9 xl:col-span-7 border-4 border-black p-8 sm:p-12 bg-white neo-shadow-lg text-black">
+        
+        <!-- Rendered markdown content -->
+        <div class="doc-content prose prose-headings:font-black prose-h1:text-4xl prose-h2:text-2xl prose-p:font-medium prose-p:leading-relaxed">
+          <Fragment set:html={contentHtml} />
+        </div>
+
+      </article>
+
+      <!-- Right Column: Headers Sidebar -->
+      <aside class="hidden xl:block xl:col-span-2 sticky top-24 max-h-[80vh] overflow-y-auto border-4 border-black bg-white neo-shadow p-6">
+        <h3 class="font-black text-sm uppercase tracking-wider text-black border-b-2 border-black pb-2 mb-4 bg-color-chart-2 px-2 -mx-2">
+          On This Page
+        </h3>
+        {pageHeaders.length > 0 ? (
+          <ul class="space-y-2.5 font-bold text-xs">
+            {pageHeaders.map(header => (
+              <li class={header.depth === 3 ? 'pl-4 border-l-2 border-black/20' : ''}>
+                <a 
+                  href={`#${header.slugId}`} 
+                  class="toc-link text-gray-700 hover:text-black hover:underline transition-all block leading-snug"
+                >
+                  {header.text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="font-mono text-xs text-gray-500 italic">No headings on this page</p>
+        )}
+      </aside>
+
+    </div>
+  </div>
+
+  <script>
+    // Handles toggling of sidebar on mobile viewports
+    const toggleBtn = document.getElementById('toggle-docs-sidebar');
+    const sidebarEl = document.getElementById('docs-sidebar');
+    const chevron = document.getElementById('sidebar-toggle-chevron');
+
+    if (toggleBtn && sidebarEl) {
+      toggleBtn.addEventListener('click', () => {
+        sidebarEl.classList.toggle('hidden');
+        chevron?.classList.toggle('rotate-90');
+      });
+    }
+
+    // Intersection Observer to highlight active heading in sidebar
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const id = entry.target.getAttribute('id');
+        if (!id) return;
+        const link = document.querySelector(`.toc-link[href="#${id}"]`);
+        if (link) {
+          if (entry.isIntersecting) {
+            link.classList.add('bg-color-chart-1', 'text-black', 'px-1.5', 'py-0.5', 'border-2', 'border-black', 'neo-shadow');
+            link.classList.remove('text-gray-700');
+          } else {
+            link.classList.remove('bg-color-chart-1', 'text-black', 'px-1.5', 'py-0.5', 'border-2', 'border-black', 'neo-shadow');
+            link.classList.add('text-gray-700');
+          }
+        }
+      });
+    }, { rootMargin: '-10% 0px -70% 0px' });
+
+    document.querySelectorAll('.doc-content h2, .doc-content h3').forEach(heading => {
+      observer.observe(heading);
+    });
+
+    // Convert mermaid code blocks into div elements and load Mermaid dynamically
+    const mermaidBlocks = document.querySelectorAll('.language-mermaid');
+    if (mermaidBlocks.length > 0) {
+      mermaidBlocks.forEach((el) => {
+        const pre = el.parentElement;
+        if (pre && pre.tagName === 'PRE') {
+          const div = document.createElement('div');
+          div.className = 'mermaid bg-white border-4 border-black neo-shadow p-6 my-6 overflow-x-auto flex justify-center';
+          div.textContent = el.textContent;
+          pre.replaceWith(div);
+        }
+      });
+
+      try {
+        // @ts-ignore
+        const { default: mermaid } = await import(/* @vite-ignore */ 'https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.esm.min.mjs');
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: 'default',
+          securityLevel: 'loose'
+        });
+        await mermaid.run();
+      } catch (err) {
+        console.error('Failed to load or render Mermaid:', err);
+      }
+    }
+  </script>
+
+  <style is:global>
+    /* Scope custom markdown HTML parsing rules */
+    .doc-content h1 {
+      font-size: 2.25rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+      border-bottom: 4px solid #000;
+      padding-bottom: 0.75rem;
+    }
+    
+    .doc-content h2 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-top: 2.5rem;
+      margin-bottom: 1.25rem;
+      border-bottom: 2px solid #000;
+      padding-bottom: 0.5rem;
+    }
+
+    .doc-content h3 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .doc-content h4 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+      background-color: var(--color-chart-3);
+      width: fit-content;
+      padding: 2px 6px;
+      border: 2px solid #000;
+      box-shadow: 2px 2px 0px #000;
+    }
+
+    .doc-content p {
+      font-size: 1rem;
+      font-weight: 500;
+      line-height: 1.75;
+      margin-bottom: 1.5rem;
+      color: #1a1a1a;
+    }
+
+    .doc-content ul {
+      list-style-type: disc;
+      padding-left: 1.75rem;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+    }
+
+    .doc-content li {
+      margin-bottom: 0.5rem;
+    }
+
+    .doc-content li p {
+      margin-bottom: 0;
+    }
+
+    .doc-content strong {
+      font-weight: 900;
+      background-color: #faf089;
+      padding: 0 2px;
+    }
+
+    .doc-content a {
+      font-weight: 700;
+      color: #000;
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 2px;
+    }
+    
+    .doc-content a:hover {
+      background-color: var(--color-chart-1);
+    }
+
+    .doc-content code {
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 0.9em;
+      background-color: #f7fafc;
+      border: 2px solid #000;
+      padding: 2px 6px;
+      box-shadow: 1px 1px 0px #000;
+    }
+
+    .doc-content pre {
+      background-color: #000 !important;
+      color: #fff !important;
+      border: 4px solid #000;
+      box-shadow: 4px 4px 0px #000;
+      padding: 1.25rem;
+      margin-bottom: 1.75rem;
+      overflow-x: auto;
+    }
+
+    .doc-content pre code {
+      background-color: transparent;
+      border: none;
+      color: inherit;
+      padding: 0;
+      box-shadow: none;
+      font-size: 0.9rem;
+    }
+
+    /* Custom selection colors inside code examples for clear cursor highlighting visibility */
+    .doc-content pre::selection,
+    .doc-content pre *::selection {
+      background-color: var(--color-chart-3, #FACC00) !important;
+      color: #000000 !important;
+    }
+
+    /* Neobrutalist Table Styles */
+    .doc-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+      border: 4px solid #000;
+      box-shadow: 4px 4px 0px #000;
+      background-color: #fff;
+    }
+    
+    .doc-content th {
+      border: 2px solid #000;
+      background-color: var(--color-chart-1, #A985FF);
+      color: #000;
+      padding: 0.75rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      text-align: left;
+    }
+    
+    .doc-content td {
+      border: 2px solid #000;
+      padding: 0.75rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      vertical-align: top;
+    }
+    
+    .doc-content tr:nth-child(even) {
+      background-color: #f7fafc;
+    }
+    
+    /* Separators */
+    .doc-content hr {
+      border: none;
+      border-top: 4px solid #000;
+      margin: 2.5rem 0;
+    }
+    
+    /* Grid cards inside markdown */
+    .doc-content .cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    @media (min-width: 640px) {
+      .doc-content .cards {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    
+    .doc-content .cards > li {
+      list-style-type: none;
+      border: 4px solid #000;
+      padding: 1.5rem;
+      background-color: #fff;
+      box-shadow: 4px 4px 0px #000;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .doc-content .cards > li hr {
+      margin: 0.75rem 0;
+      border-top: 2px solid #000;
+    }
+  </style>
+</Layout>

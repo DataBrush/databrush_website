@@ -1,0 +1,348 @@
+---
+import Layout from '~/layouts/Layout.astro';
+import { loadLocale, getLanguagePaths } from '~/lib/i18n';
+
+export function getStaticPaths() {
+  return getLanguagePaths();
+}
+
+const { lang } = Astro.params;
+const m = loadLocale(lang);
+
+const metadata = {
+  title: 'Renoir Application Monitor | Dashboard',
+  description: 'Interactive monitoring simulation for Renoir data processing pipelines.'
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- Load Neobrutalist Dashboard Styles -->
+  <link rel="stylesheet" href="/dashboard/style.css" />
+
+  <!-- SVG Hand-Drawn Filter definition -->
+  <svg class="svg-filters" style="position: absolute; width: 0; height: 0;" aria-hidden="true">
+    <defs>
+      <!-- Filter to make borders look hand-drawn and slightly wavy -->
+      <filter id="hand-drawn-filter">
+        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <!-- Hand-drawn arrow markers -->
+      <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="#2d3748" />
+      </marker>
+      <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="#2b8a3e" />
+      </marker>
+      <marker id="arrow-dark" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="#9ca3af" />
+      </marker>
+      <marker id="arrow-black" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+      </marker>
+      <marker id="arrow-white" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" />
+      </marker>
+    </defs>
+  </svg>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    
+    <!-- Redesigned Neobrutalist Dashboard Header -->
+    <div class="border-4 border-black bg-white p-6 neo-shadow flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-color-chart-1 border-4 border-black flex items-center justify-center font-black text-2xl neo-shadow select-none text-black">
+          R
+        </div>
+        <div>
+          <h1 class="font-black text-2xl uppercase leading-none text-black">Renoir Pipeline Monitor</h1>
+          <p class="font-mono text-xs text-gray-500 mt-1">// Powered by Databrush - Live Topology Simulation</p>
+        </div>
+      </div>
+      
+      <!-- Target status indicator for app.js -->
+      <div class="status-summary">
+        <div class="status-indicator-box healthy" id="global-status-indicator">
+          <span class="status-dot"></span>
+          <span class="status-label">Pipeline: HEALTHY</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbar / Controls -->
+    <div class="app-toolbar border-4 border-black p-4 bg-white neo-shadow flex flex-wrap items-center justify-between gap-4 mb-8">
+      <div class="control-group flex flex-wrap gap-3">
+        <button class="sketch-btn active font-black text-sm uppercase px-4 py-2 border-2 border-black bg-color-chart-3 text-black hover:bg-yellow-300" id="btn-play-pause">
+          <span class="icon">⏸</span> Pause Sim
+        </button>
+        <button class="sketch-btn font-black text-sm uppercase px-4 py-2 border-2 border-black bg-white text-black hover:bg-gray-50" id="btn-inject-warning">
+          <span class="icon">⚠️</span> Inject Warning
+        </button>
+        <button class="sketch-btn font-black text-sm uppercase px-4 py-2 border-2 border-black bg-white text-black hover:bg-gray-50" id="btn-clear-selection">
+          <span class="icon">✨</span> Reset View
+        </button>
+      </div>
+
+      <div class="control-group slider-group flex items-center gap-2 font-bold text-sm text-black">
+        <label for="simulation-speed">Throughput Scale:</label>
+        <input type="range" id="simulation-speed" min="0.2" max="3" step="0.1" value="1" class="accent-black">
+        <span id="speed-value" class="font-mono bg-black text-white px-2 py-0.5">1.0x</span>
+      </div>
+
+      <!-- Hidden standard theme toggler since layout has global settings -->
+      <div class="control-group theme-group hidden">
+        <button class="sketch-btn" id="btn-theme-toggle">
+          <span class="icon">🌙</span> Dark Mode
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <main class="app-content">
+      <!-- DAG Area -->
+      <section class="dag-section">
+        <div class="dag-outer-card border-4 border-black bg-white neo-shadow p-6 flex flex-col">
+          <div class="dag-card-header border-b-2 border-black pb-4 mb-4">
+            <h2 class="font-black text-xl uppercase text-black">Pipeline Topology (DAG)</h2>
+            <p class="text-xs text-gray-500 font-mono mt-1">Click a node to view stats, or click the background to see pipeline-wide stats.</p>
+          </div>
+
+          <!-- Topology Container -->
+          <div class="dag-canvas-container border-4 border-black relative overflow-hidden h-[500px]" id="dag-container">
+            <div id="dag-viewport" class="w-full h-full relative">
+              <!-- Background SVG for lines and particle animations -->
+              <svg class="dag-connections-svg w-full h-full absolute inset-0" id="connections-svg">
+                <!-- JS will dynamically populate connection paths here -->
+              </svg>
+
+              <!-- HTML Nodes positioned absolutely -->
+              <!-- 1. Operazioni Bancarie (Source) -->
+              <div class="dag-node absolute" id="node-operazioni-bancarie" data-node-id="operazioni-bancarie" style="left: 6%; top: 50%;">
+                <div class="node-border"></div>
+                <div class="node-content">
+                  <span class="node-type">Source</span>
+                  <span class="node-title">Operazioni Bancarie</span>
+                </div>
+                <div class="node-sketch-bubble">
+                  <div class="bubble-border"></div>
+                  <div class="bubble-content">
+                    <div>throughput: <span class="bubble-stat" id="bubble-stat-operazioni-bancarie-throughput">...</span></div>
+                    <div>CPU: <span class="bubble-stat" id="bubble-stat-operazioni-bancarie-cpu">...</span></div>
+                    <div>Mem: <span class="bubble-stat" id="bubble-stat-operazioni-bancarie-mem">...</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. Controlli Utente (Filter/Map) -->
+              <div class="dag-node absolute" id="node-controlli-utente" data-node-id="controlli-utente" style="left: 35%; top: 20%;">
+                <div class="node-border"></div>
+                <div class="node-content">
+                  <span class="node-type">Operator</span>
+                  <span class="node-title">Controlli Utente</span>
+                </div>
+                <div class="node-sketch-bubble">
+                  <div class="bubble-border"></div>
+                  <div class="bubble-content">
+                    <div>throughput: <span class="bubble-stat" id="bubble-stat-controlli-utente-throughput">...</span></div>
+                    <div>CPU: <span class="bubble-stat" id="bubble-stat-controlli-utente-cpu">...</span></div>
+                    <div>Mem: <span class="bubble-stat" id="bubble-stat-controlli-utente-mem">...</span></div>
+                    <div id="bubble-stat-controlli-utente-custom" class="bubble-custom-field"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. Controlli Transazione (Filter/Map) -->
+              <div class="dag-node absolute" id="node-controlli-transazione" data-node-id="controlli-transazione" style="left: 35%; top: 50%;">
+                <div class="node-border"></div>
+                <div class="node-content">
+                  <span class="node-type">Operator</span>
+                  <span class="node-title">Controlli Transazione</span>
+                </div>
+                <div class="node-sketch-bubble">
+                  <div class="bubble-border"></div>
+                  <div class="bubble-content">
+                    <div>throughput: <span class="bubble-stat" id="bubble-stat-controlli-transazione-throughput">...</span></div>
+                    <div>CPU: <span class="bubble-stat" id="bubble-stat-controlli-transazione-cpu">...</span></div>
+                    <div>Mem: <span class="bubble-stat" id="bubble-stat-controlli-transazione-mem">...</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4. Salvataggio Audit (Pre-Filter Sink) -->
+              <div class="dag-node absolute" id="node-salvataggio-audit-pre" data-node-id="salvataggio-audit-pre" style="left: 35%; top: 80%;">
+                <div class="node-border"></div>
+                <div class="node-content">
+                  <span class="node-type">Sink</span>
+                  <span class="node-title">Salvataggio Audit</span>
+                </div>
+                <div class="node-sketch-bubble">
+                  <div class="bubble-border"></div>
+                  <div class="bubble-content">
+                    <div>throughput: <span class="bubble-stat" id="bubble-stat-salvataggio-audit-pre-throughput">...</span></div>
+                    <div>CPU: <span class="bubble-stat" id="bubble-stat-salvataggio-audit-pre-cpu">...</span></div>
+                    <div>Mem: <span class="bubble-stat" id="bubble-stat-salvataggio-audit-pre-mem">...</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 5. Accetta/Rifiuto (Decision) -->
+              <div class="dag-node absolute" id="node-accetta-rifiuto" data-node-id="accetta-rifiuto" style="left: 65%; top: 50%;">
+                <div class="node-border"></div>
+                <div class="node-content">
+                  <span class="node-type">Filter</span>
+                  <span class="node-title">Accetta / Rifiuto</span>
+                </div>
+                <div class="node-sketch-bubble">
+                  <div class="bubble-border"></div>
+                  <div class="bubble-content">
+                    <div>throughput: <span class="bubble-stat" id="bubble-stat-accetta-rifiuto-throughput">...</span></div>
+                    <div>CPU: <span class="bubble-stat" id="bubble-stat-accetta-rifiuto-cpu">...</span></div>
+                    <div>Mem: <span class="bubble-stat" id="bubble-stat-accetta-rifiuto-mem">...</span></div>
+                    <div id="bubble-stat-accetta-rifiuto-custom" class="bubble-custom-field"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 6. Invio Conferma (Sink) -->
+              <div class="dag-node absolute" id="node-invio-conferma" data-node-id="invio-conferma" style="left: 92%; top: 35%;">
+                <div class="node-border"></div>
+                <div class="node-content">
+                  <span class="node-type">Sink</span>
+                  <span class="node-title">Invio Conferma</span>
+                </div>
+                <div class="node-sketch-bubble">
+                  <div class="bubble-border"></div>
+                  <div class="bubble-content">
+                    <div>throughput: <span class="bubble-stat" id="bubble-stat-invio-conferma-throughput">...</span></div>
+                    <div>CPU: <span class="bubble-stat" id="bubble-stat-invio-conferma-cpu">...</span></div>
+                    <div>Mem: <span class="bubble-stat" id="bubble-stat-invio-conferma-mem">...</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 7. Salvataggio Audit (Post-Filter Sink) -->
+              <div class="dag-node absolute" id="node-salvataggio-audit-post" data-node-id="salvataggio-audit-post" style="left: 92%; top: 65%;">
+                <div class="node-border"></div>
+                <div class="node-content">
+                  <span class="node-type">Sink</span>
+                  <span class="node-title">Salvataggio Audit</span>
+                </div>
+                <div class="node-sketch-bubble">
+                  <div class="bubble-border"></div>
+                  <div class="bubble-content">
+                    <div>throughput: <span class="bubble-stat" id="bubble-stat-salvataggio-audit-post-throughput">...</span></div>
+                    <div>CPU: <span class="bubble-stat" id="bubble-stat-salvataggio-audit-post-cpu">...</span></div>
+                    <div>Mem: <span class="bubble-stat" id="bubble-stat-salvataggio-audit-post-mem">...</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Inspector / Node Explainability Panel -->
+        <div class="explainability-card border-4 border-black bg-white neo-shadow p-6 hidden" id="explainability-card">
+          <div class="explainability-content">
+            <div class="explainability-header border-b-2 border-black pb-3 mb-4 flex items-center justify-between">
+              <h3 class="font-black text-lg uppercase text-black flex items-center gap-2">
+                <span>🔍</span> Operator Inspector: <span id="explain-node-name">Node Name</span>
+              </h3>
+              <span class="notebook-badge bg-color-chart-1 text-black font-black text-xs uppercase px-2 py-0.5 border-2 border-black" id="explain-node-type">Operator</span>
+            </div>
+            <div class="explainability-body space-y-4">
+              <div class="explainability-text-section">
+                <p id="explain-node-description" class="font-bold text-sm text-gray-700 leading-relaxed">Description of what happens inside this node...</p>
+              </div>
+              <div class="explainability-io-section grid grid-cols-1 md:grid-cols-11 gap-4 items-center">
+                <div class="io-box md:col-span-5 border-2 border-black p-3 bg-gray-50">
+                  <h4 class="font-black text-xs uppercase mb-2">Input Data Stream</h4>
+                  <pre class="font-mono text-xs overflow-x-auto bg-black text-white p-2 border border-black"><code id="explain-node-input">...</code></pre>
+                </div>
+                <div class="io-arrow md:col-span-1 text-center font-black text-2xl text-black">➜</div>
+                <div class="io-box md:col-span-5 border-2 border-black p-3 bg-gray-50">
+                  <h4 class="font-black text-xs uppercase mb-2">Output Data Stream</h4>
+                  <pre class="font-mono text-xs overflow-x-auto bg-black text-white p-2 border border-black"><code id="explain-node-output">...</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sidebar Inspector -->
+      <aside class="sidebar-inspector">
+        <div class="notebook-card border-4 border-black bg-white neo-shadow p-6 relative">
+          <!-- Spiral visual effect -->
+          <div class="notebook-spiral absolute -left-4 top-4 bottom-4 flex flex-col justify-around pointer-events-none select-none z-10">
+            {[...Array(8)].map(() => (
+              <span class="w-8 h-3 border-2 border-black bg-gray-200 inline-block rotate-90 rounded-full neo-shadow"></span>
+            ))}
+          </div>
+
+          <div class="notebook-content pl-4">
+            <div class="notebook-header border-b-2 border-black pb-3 mb-4 flex items-center justify-between">
+              <h2 class="font-black text-xl uppercase text-black" id="inspector-title">Pipeline Statistics</h2>
+              <span class="notebook-badge bg-color-chart-3 text-black font-black text-xs uppercase px-2 py-0.5 border-2 border-black" id="inspector-badge">Global</span>
+            </div>
+
+            <div class="notebook-body space-y-4 text-black">
+              <!-- Stat Fields -->
+              <div class="notebook-stat-row flex justify-between border-b border-gray-200 pb-2">
+                <span class="label font-bold text-gray-500 uppercase text-xs">Status:</span>
+                <span class="value font-black text-sm" id="stat-status">Healthy</span>
+              </div>
+              <div class="notebook-stat-row flex justify-between border-b border-gray-200 pb-2">
+                <span class="label font-bold text-gray-500 uppercase text-xs">Throughput:</span>
+                <span class="value font-black text-sm" id="stat-throughput">3.1M/s</span>
+              </div>
+              <div class="notebook-stat-row flex justify-between border-b border-gray-200 pb-2">
+                <span class="label font-bold text-gray-500 uppercase text-xs">Avg Latency:</span>
+                <span class="value font-black text-sm font-mono" id="stat-latency">2.0 ms</span>
+              </div>
+              <div class="notebook-stat-row flex justify-between border-b border-gray-200 pb-2">
+                <span class="label font-bold text-gray-500 uppercase text-xs">CPU Usage:</span>
+                <span class="value font-black text-sm font-mono" id="stat-cpu">20%</span>
+              </div>
+              <div class="notebook-stat-row flex justify-between border-b border-gray-200 pb-2">
+                <span class="label font-bold text-gray-500 uppercase text-xs">Memory Alloc:</span>
+                <span class="value font-black text-sm font-mono" id="stat-mem">5.0 Gb</span>
+              </div>
+
+              <!-- Special custom info row -->
+              <div class="notebook-custom-section border-2 border-black p-4 bg-gray-50" id="inspector-custom-section">
+                <h3 class="font-black text-xs uppercase mb-1">Topology Info</h3>
+                <p id="inspector-custom-text" class="font-bold text-xs text-gray-700 leading-relaxed">
+                  Global monitoring of the 7 running nodes. Click on any node inside the topology DAG to drill down into localized operator statistics.
+                </p>
+              </div>
+
+              <!-- Sparkline Chart -->
+              <div class="notebook-chart-section border-2 border-black p-4 bg-white">
+                <h3 class="font-black text-xs uppercase mb-2">Real-time Activity (Throughput)</h3>
+                <div class="chart-container h-20 bg-gray-50 border border-black overflow-hidden relative">
+                  <svg id="sparkline-svg" viewBox="0 0 300 80" preserveAspectRatio="none" class="w-full h-full">
+                    <!-- Dynamic sparkline curve -->
+                    <path id="sparkline-path" d="" fill="none" stroke="#2b8a3e" stroke-width="3"></path>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Notepad Event Log -->
+              <div class="notebook-log-section border-2 border-black p-4 bg-white">
+                <h3 class="font-black text-xs uppercase mb-2">Event Log</h3>
+                <div class="log-console font-mono text-[10px] leading-relaxed max-h-24 overflow-y-auto space-y-1 text-gray-700 bg-gray-50 p-2 border border-black" id="log-console">
+                  <div class="log-entry">[10:32:01] INFO: Pipeline successfully loaded.</div>
+                  <div class="log-entry">[10:32:05] INFO: Connecting to Operazioni Bancarie source...</div>
+                  <div class="log-entry">[10:32:10] INFO: Pipeline streaming active.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Load Simulation Logic -->
+  <script is:inline src="/dashboard/app.js" defer></script>
+</Layout>

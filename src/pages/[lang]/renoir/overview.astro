@@ -1,0 +1,399 @@
+---
+import Layout from '~/layouts/Layout.astro';
+import { loadLocale, getLanguagePaths } from '~/lib/i18n';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import { 
+  Zap, 
+  Cpu, 
+  Settings, 
+  Infinity as InfiniteIcon, 
+  Share2, 
+  ArrowRight,
+  Shield, 
+  Factory, 
+  LineChart, 
+  Mail, 
+  AlertOctagon,
+  Check
+} from '@lucide/astro';
+
+export function getStaticPaths() {
+  return getLanguagePaths();
+}
+
+const { lang } = Astro.params;
+const m = loadLocale(lang);
+
+const metadata = {
+  title: m.renoir_overview_title(),
+  description: m.renoir_hero_subtitle()
+};
+---
+
+<Layout metadata={metadata}>
+  <!-- Hero Section -->
+  <section class="relative min-h-[70vh] flex items-center justify-center py-20 bg-background border-b-4 border-black">
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#00000012_1px,transparent_1px),linear-gradient(to_bottom,#00000012_1px,transparent_1px)] bg-[size:30px_30px] -z-10"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      
+      <!-- Text Area -->
+      <div class="lg:col-span-7 flex flex-col gap-6 text-left">
+        <span class="bg-color-chart-1 text-black font-black font-mono text-sm px-4 py-2 border-4 border-black neo-shadow uppercase tracking-wider w-fit">
+          Databrush Renoir
+        </span>
+        <h1 class="text-4xl sm:text-6xl font-black uppercase text-black leading-none tracking-tight">
+          {m.renoir_hero_title()}
+        </h1>
+        <p class="text-lg sm:text-xl font-bold text-gray-800 leading-relaxed max-w-2xl">
+          {m.renoir_hero_subtitle()}
+        </p>
+        <div class="flex flex-wrap gap-4 mt-2">
+          <a 
+            href="/docs/" 
+            class="font-black text-lg uppercase bg-color-chart-2 text-black px-6 py-4 border-4 border-black neo-shadow neo-hover-shift"
+          >
+            {m.renoir_hero_action_1()}
+          </a>
+          <a 
+            href="#features" 
+            class="font-black text-lg uppercase bg-white text-black px-6 py-4 border-4 border-black neo-shadow neo-hover-shift hover:bg-gray-50"
+          >
+            {m.renoir_hero_action_2()}
+          </a>
+        </div>
+      </div>
+
+      <!-- Tech Visual Area -->
+      <div class="lg:col-span-5 border-4 border-black bg-white neo-shadow-lg p-6 flex flex-col gap-4">
+        <div class="relative bg-black text-white p-4 pr-16 font-mono text-xs overflow-x-auto border-2 border-black neo-shadow">
+          <!-- Renoir Logo as a square in the upper right corner -->
+          <div class="absolute top-1 right-1 w-14 h-14 bg-white border-2 border-purple-600 neo-shadow flex items-center justify-center p-1 shrink-0 select-none">
+            <img src="/assets/Renoir.png" alt="Renoir Logo" class="w-full h-full object-contain" />
+          </div>
+          <span class="text-color-chart-2">// Rust Dataflow Pipeline Example</span><br/>
+          <span class="text-color-chart-1">let</span> ctx = StreamContext::new(config);<br/>
+          <span class="text-color-chart-1">let</span> stream = ctx.stream_kafka(config, &["events"], Replication::Unlimited);<br/>
+          <span class="text-color-chart-1">let</span> result = stream<br/>
+          &nbsp;&nbsp;.map(|x| x * 2)<br/>
+          &nbsp;&nbsp;.window_all(CountWindow::tumbling(10))<br/>
+          &nbsp;&nbsp;.reduce(|a, b| a + b);<br/>
+          ctx.execute_blocking();
+        </div>
+        <div class="flex items-center justify-between border-t-2 border-black pt-4">
+          <span class="font-extrabold text-xs uppercase text-gray-500 font-mono">LANGUAGE: RUST</span>
+          <span class="font-black text-xs uppercase bg-color-chart-3 text-black px-2 py-1 border-2 border-black">ZERO JVM OVERHEAD</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-20 bg-secondary-background border-b-4 border-black">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Header -->
+      <div class="text-center mb-16 max-w-3xl mx-auto">
+        <h2 class="text-4xl sm:text-6xl font-black uppercase tracking-tight text-black mb-4">
+          {m.renoir_features_title()}
+        </h2>
+        <p class="text-lg sm:text-xl font-extrabold text-gray-700 font-mono">
+          // {m.renoir_features_subtitle()}
+        </p>
+      </div>
+
+      <!-- Features Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {[
+          {
+            title: m.renoir_features_item_1_title(),
+            desc: m.renoir_features_item_1_description(),
+            icon: Cpu,
+            color: 'bg-color-chart-1'
+          },
+          {
+            title: m.renoir_features_item_2_title(),
+            desc: m.renoir_features_item_2_description(),
+            icon: Zap,
+            color: 'bg-color-chart-2'
+          },
+          {
+            title: m.renoir_features_item_3_title(),
+            desc: m.renoir_features_item_3_description(),
+            icon: Settings,
+            color: 'bg-color-chart-3'
+          },
+          {
+            title: m.renoir_features_item_4_title(),
+            desc: m.renoir_features_item_4_description(),
+            icon: InfiniteIcon,
+            color: 'bg-color-chart-4'
+          },
+          {
+            title: m.renoir_features_item_5_title(),
+            desc: m.renoir_features_item_5_description(),
+            icon: Share2,
+            color: 'bg-color-chart-1'
+          },
+          {
+            title: m.renoir_features_item_6_title(),
+            desc: m.renoir_features_item_6_description(),
+            icon: Check,
+            color: 'bg-color-chart-2'
+          }
+        ].map(feat => (
+          <div class="border-4 border-black p-8 bg-white neo-shadow flex flex-col gap-6">
+            <div class={`w-12 h-12 border-4 border-black flex items-center justify-center shrink-0 ${feat.color} neo-shadow`}>
+              <feat.icon class="w-6 h-6 text-black" />
+            </div>
+            <h3 class="font-black text-2xl uppercase tracking-tight text-black">
+              {feat.title}
+            </h3>
+            <p class="font-bold text-gray-700 leading-relaxed">
+              {feat.desc}
+            </p>
+          </div>
+        ))}
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Use Cases Section -->
+  <section class="py-20 bg-background border-b-4 border-black">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Header -->
+      <div class="text-center mb-16 max-w-3xl mx-auto">
+        <h2 class="text-4xl sm:text-6xl font-black uppercase tracking-tight text-black mb-4">
+          {m.renoir_use_cases_title()}
+        </h2>
+        <p class="text-lg sm:text-xl font-extrabold text-gray-700 font-mono">
+          // {m.renoir_use_cases_subtitle()}
+        </p>
+      </div>
+
+      <!-- Use Cases Lists -->
+      <div class="space-y-12">
+        {[
+          {
+            title: m.renoir_use_case_1_title(),
+            desc: m.renoir_use_case_1_description(),
+            examples: m.renoir_use_case_1_examples(),
+            icon: Shield,
+            color: 'bg-color-chart-3'
+          },
+          {
+            title: m.renoir_use_case_2_title(),
+            desc: m.renoir_use_case_2_description(),
+            examples: m.renoir_use_case_2_examples(),
+            icon: Factory,
+            color: 'bg-color-chart-1'
+          },
+          {
+            title: m.renoir_use_case_3_title(),
+            desc: m.renoir_use_case_3_description(),
+            examples: m.renoir_use_case_3_examples(),
+            icon: LineChart,
+            color: 'bg-color-chart-2'
+          }
+        ].map((uc, index) => (
+          <div class={`grid grid-cols-1 lg:grid-cols-12 border-4 border-black bg-white neo-shadow overflow-hidden`}>
+            {/* Left Box (Title & Icon) */}
+            <div class={`lg:col-span-4 p-8 flex flex-col justify-between border-b-4 lg:border-b-0 lg:border-r-4 border-black ${uc.color} text-black`}>
+              <div class="w-12 h-12 border-4 border-black bg-white flex items-center justify-center neo-shadow">
+                <uc.icon class="w-6 h-6 text-black" />
+              </div>
+              <h3 class="font-black text-3xl uppercase tracking-tight leading-none mt-8">
+                {uc.title}
+              </h3>
+            </div>
+            
+            {/* Right Box (Description & Examples) */}
+            <div class="lg:col-span-8 p-8 flex flex-col gap-6 bg-white justify-center">
+              <div>
+                <h4 class="font-mono text-xs uppercase text-gray-500 font-extrabold mb-1">// Description</h4>
+                <p class="font-bold text-gray-800 leading-relaxed text-base">
+                  <Fragment set:html={uc.desc} />
+                </p>
+              </div>
+              <div class="border-t-2 border-dashed border-black pt-4">
+                <h4 class="font-mono text-xs uppercase text-gray-500 font-extrabold mb-1">// Real-world Examples</h4>
+                <p class="font-bold text-gray-700 leading-relaxed text-sm">
+                  <Fragment set:html={uc.examples} />
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section class="py-20 bg-secondary-background border-b-4 border-black">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Header -->
+      <div class="text-center mb-16 max-w-3xl mx-auto">
+        <h2 class="text-4xl sm:text-6xl font-black uppercase tracking-tight text-black mb-4">
+          {m.renoir_pricing_title()}
+        </h2>
+        <p class="text-lg sm:text-xl font-extrabold text-gray-700 font-mono">
+          // Flexible options for all scale requirements
+        </p>
+      </div>
+
+      <!-- Pricing Plans Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+        
+        <!-- Open Source Plan -->
+        <div class="border-4 border-black p-8 bg-white neo-shadow flex flex-col justify-between h-full">
+          <div>
+            <span class="font-black text-xs uppercase bg-color-chart-3 text-black px-2 py-1 border-2 border-black font-mono w-fit block mb-4">
+              COMMUNITY
+            </span>
+            <h3 class="font-black text-3xl uppercase text-black mb-2">{m.renoir_pricing_open_source_title()}</h3>
+            <p class="font-bold text-sm text-gray-600 mb-6">{m.renoir_pricing_open_source_subtitle()}</p>
+            
+            <div class="flex items-baseline gap-1 mb-8">
+              <span class="text-5xl font-black tracking-tighter text-black">${m.renoir_pricing_open_source_price()}</span>
+              <span class="font-bold text-gray-500 text-sm font-mono">{m.renoir_pricing_open_source_period()}</span>
+            </div>
+          </div>
+
+          <a 
+            href="/docs/" 
+            class="w-full text-center font-black text-md uppercase bg-black text-white px-6 py-4 border-4 border-black neo-shadow neo-hover-shift block hover:bg-gray-900"
+          >
+            {m.renoir_pricing_open_source_cta()}
+          </a>
+        </div>
+
+        <!-- Enterprise Plan (Highlighted) -->
+        <div class="border-4 border-black p-8 bg-color-chart-1 neo-shadow-lg flex flex-col justify-between h-full relative transform md:-translate-y-2">
+          <span class="absolute -top-5 left-1/2 -translate-x-1/2 font-black text-xs uppercase bg-black text-white px-4 py-1.5 border-4 border-black font-mono text-center shadow-[3px_3px_0px_#fff]">
+            MOST RECOMMENDED
+          </span>
+          <div class="mt-4">
+            <span class="font-black text-xs uppercase bg-black text-white px-2 py-1 border-2 border-black font-mono w-fit block mb-4">
+              ENTERPRISE
+            </span>
+            <h3 class="font-black text-3xl uppercase text-black mb-2">{m.renoir_pricing_enterprise_title()}</h3>
+            <p class="font-bold text-sm text-gray-900 mb-6">{m.renoir_pricing_enterprise_subtitle()}</p>
+            
+            <div class="flex items-baseline gap-1 mb-8">
+              <span class="text-4xl sm:text-5xl font-black tracking-tighter text-black leading-none">{m.renoir_pricing_enterprise_price()}</span>
+            </div>
+          </div>
+
+          <a 
+            href={getRelativeLocaleUrl(lang, '/contact')} 
+            class="w-full text-center font-black text-md uppercase bg-white text-black px-6 py-4 border-4 border-black neo-shadow neo-hover-shift block hover:bg-gray-100"
+          >
+            {m.renoir_pricing_enterprise_cta()}
+          </a>
+        </div>
+
+        <!-- Cloud Plan -->
+        <div class="border-4 border-black p-8 bg-white neo-shadow flex flex-col justify-between h-full">
+          <div>
+            <span class="font-black text-xs uppercase bg-color-chart-2 text-black px-2 py-1 border-2 border-black font-mono w-fit block mb-4">
+              SAAS CLOUD
+            </span>
+            <h3 class="font-black text-3xl uppercase text-black mb-2">{m.renoir_pricing_cloud_title()}</h3>
+            <p class="font-bold text-sm text-gray-600 mb-6">{m.renoir_pricing_cloud_subtitle()}</p>
+            
+            <div class="flex items-baseline gap-1 mb-8">
+              <span class="text-4xl font-black tracking-tighter text-black">{m.renoir_pricing_cloud_price()}</span>
+            </div>
+          </div>
+
+          <button 
+            disabled
+            class="w-full text-center font-black text-md uppercase bg-gray-200 text-gray-500 px-6 py-4 border-4 border-gray-400 cursor-not-allowed block"
+          >
+            Coming Soon
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="py-20 bg-background border-b-4 border-black">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      
+      <!-- Section Header -->
+      <div class="text-center mb-16">
+        <h2 class="text-4xl sm:text-6xl font-black uppercase tracking-tight text-black mb-4">
+          {m.renoir_faq_title()}
+        </h2>
+        <p class="text-lg sm:text-xl font-extrabold text-gray-700 font-mono">
+          // Frequently Asked Questions about Renoir
+        </p>
+      </div>
+
+      <!-- FAQ Accordions -->
+      <div class="space-y-6">
+        {[
+          { q: m.renoir_faq_item_1_title(), a: m.renoir_faq_item_1_description() },
+          { q: m.renoir_faq_item_2_title(), a: m.renoir_faq_item_2_description() },
+          { q: m.renoir_faq_item_3_title(), a: m.renoir_faq_item_3_description() },
+          { q: m.renoir_faq_item_4_title(), a: m.renoir_faq_item_4_description() }
+        ].map(faq => (
+          <details class="faq-details border-4 border-black bg-white neo-shadow transition-all group">
+            <summary class="flex items-center justify-between p-6 cursor-pointer font-black text-lg uppercase select-none list-none text-black">
+              <span>{faq.q}</span>
+              <span class="text-2xl font-mono leading-none transition-transform group-open:rotate-45">+</span>
+            </summary>
+            <div class="p-6 pt-0 border-t-2 border-black font-bold text-gray-800 leading-relaxed bg-white">
+              <Fragment set:html={faq.a} />
+            </div>
+          </details>
+        ))}
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Connect Section -->
+  <section class="py-20 bg-color-chart-3 border-b-4 border-black text-black">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+      <h2 class="text-4xl sm:text-6xl font-black uppercase tracking-tight text-black mb-4">
+        {m.renoir_contact_title()}
+      </h2>
+      <p class="text-lg sm:text-xl font-bold text-black mb-12">
+        {m.renoir_contact_subtitle()}
+      </p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-12 text-left">
+        <div class="border-4 border-black p-6 bg-white neo-shadow">
+          <h3 class="font-black text-xl uppercase mb-2 flex items-center gap-2">
+            <Mail class="w-6 h-6" />
+            <span>{m.renoir_contact_email_title()}</span>
+          </h3>
+          <p class="font-bold text-sm text-gray-700">{m.renoir_contact_email_description()}</p>
+        </div>
+
+        <div class="border-4 border-black p-6 bg-white neo-shadow">
+          <h3 class="font-black text-xl uppercase mb-2 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+            <span>{m.renoir_contact_follow_title()}</span>
+          </h3>
+          <p class="font-bold text-sm text-gray-700">{m.renoir_contact_follow_description()}</p>
+        </div>
+      </div>
+
+      <a 
+        href={getRelativeLocaleUrl(lang, '/contact')} 
+        class="font-black text-xl uppercase bg-black text-white px-8 py-5 border-4 border-black neo-shadow neo-hover-shift inline-block hover:bg-gray-900"
+      >
+        {m.renoir_contact_cta()}
+      </a>
+    </div>
+  </section>
+</Layout>
