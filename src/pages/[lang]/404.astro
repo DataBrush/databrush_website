@@ -1,0 +1,241 @@
+---
+import Layout from '~/layouts/Layout.astro';
+import { loadLocale, getLanguagePaths } from '~/lib/i18n';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import { AlertTriangle, ArrowRight, Terminal, Cpu, Home } from '@lucide/astro';
+
+export function getStaticPaths() {
+  return getLanguagePaths();
+}
+
+const { lang } = Astro.params;
+const m = loadLocale(lang);
+
+const metadata = {
+  title: m.error_404_title(),
+  description: m.error_404_description()
+};
+---
+
+<Layout metadata={metadata}>
+  <section class="relative min-h-[80vh] flex items-center justify-center py-16 bg-background">
+    <!-- Neubrutalist Grid Background -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#00000012_1px,transparent_1px),linear-gradient(to_bottom,#00000012_1px,transparent_1px)] bg-[size:30px_30px] -z-10"></div>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        
+        <!-- Left: Text Details & Navigation -->
+        <div class="lg:col-span-6 flex flex-col gap-6 text-left">
+          <span class="bg-color-chart-4 text-black font-black font-mono text-sm px-4 py-2 border-4 border-black neo-shadow uppercase tracking-wider w-fit">
+            {m.error_404_visual_status()}
+          </span>
+          
+          <h1 class="text-5xl sm:text-7xl font-black uppercase text-black leading-none tracking-tight">
+            {m.error_404_title()}
+          </h1>
+          
+          <h2 class="text-xl sm:text-2xl font-black uppercase text-color-chart-4 font-mono">
+            // {m.error_404_subtitle()}
+          </h2>
+          
+          <p class="text-lg font-bold text-gray-800 leading-relaxed max-w-xl">
+            {m.error_404_description()}
+          </p>
+          
+          <!-- CTA buttons -->
+          <div class="flex flex-col sm:flex-row gap-4 mt-4 w-full sm:w-auto">
+            <a 
+              href={getRelativeLocaleUrl(lang, '/')} 
+              class="flex items-center justify-center gap-2 font-black text-lg uppercase bg-color-chart-2 text-black px-6 py-4 border-4 border-black neo-shadow neo-hover-shift text-center"
+            >
+              <Home class="w-5 h-5" />
+              <span>{m.error_404_button_home()}</span>
+            </a>
+            <a 
+              href="/docs/" 
+              class="flex items-center justify-center gap-2 font-black text-lg uppercase bg-white text-black px-6 py-4 border-4 border-black neo-shadow neo-hover-shift text-center hover:bg-gray-50"
+            >
+              <span>{m.error_404_button_docs()}</span>
+              <ArrowRight class="w-5 h-5" />
+            </a>
+          </div>
+        </div>
+        
+        <!-- Right: Interactive Neubrutalist Diagnostic Console -->
+        <div class="lg:col-span-6">
+          <div class="border-4 border-black p-6 bg-white neo-shadow-lg relative rounded-none">
+            <!-- Spiral binding decoration on left side of card -->
+            <div class="absolute -left-4 top-4 bottom-4 flex flex-col justify-around pointer-events-none select-none z-10">
+              {[...Array(6)].map((_, i) => (
+                <span key={i} class="w-8 h-3 border-2 border-black bg-gray-200 inline-block rotate-90 rounded-full neo-shadow"></span>
+              ))}
+            </div>
+            
+            <div class="pl-4">
+              <!-- Panel Header -->
+              <div class="border-b-4 border-black pb-3 mb-6 flex items-center justify-between">
+                <span class="font-black text-md uppercase text-black flex items-center gap-2">
+                  <Cpu class="w-5 h-5 text-color-chart-1" />
+                  <span>Pipeline Diagnostics</span>
+                </span>
+                <span class="bg-color-chart-4 text-black border-2 border-black font-black font-mono text-xs px-2 py-0.5" id="diag-badge">
+                  DEGRADED
+                </span>
+              </div>
+              
+              <!-- Pipeline SVG diagram -->
+              <div class="border-4 border-black p-4 bg-gray-50 mb-6 relative select-none overflow-hidden">
+                <div class="text-xs font-mono font-black text-gray-500 mb-2">// PIPELINE_DAG_TOPOLOGY</div>
+                
+                <div class="flex items-center justify-between gap-2 py-4 relative" style="min-height: 80px;">
+                  <!-- Connection SVG Lines -->
+                  <svg class="absolute inset-0 w-full h-full pointer-events-none" style="min-height: 80px;">
+                    <!-- Path 1: Source to Operator (Active/Green) -->
+                    <path d="M 40 40 L 155 40" stroke="#00D696" stroke-width="6" fill="none" class="neo-border-thin" />
+                    <!-- Path 2: Operator to Sink (Broken/Red-dashed initially) -->
+                    <path id="connection-path-2" d="M 215 40 L 330 40" stroke="#FF4D50" stroke-width="4" stroke-dasharray="6,6" fill="none" />
+                  </svg>
+                  
+                  <!-- Node 1: Input Source -->
+                  <div class="z-10 flex flex-col items-center gap-1">
+                    <div class="w-14 h-14 rounded-none border-4 border-black bg-color-chart-2 flex items-center justify-center neo-shadow text-black font-black text-xs">
+                      IN
+                    </div>
+                    <span class="font-mono text-[9px] font-bold text-gray-700">SourceNode</span>
+                  </div>
+                  
+                  <!-- Node 2: 404 Error Node -->
+                  <div class="z-10 flex flex-col items-center gap-1">
+                    <div id="operator-node" class="w-16 h-16 rounded-none border-4 border-black bg-color-chart-4 flex flex-col items-center justify-center neo-shadow text-black font-black text-xs animate-pulse">
+                      <AlertTriangle class="w-5 h-5 mb-0.5 text-black" id="operator-icon" />
+                      <span id="operator-label">404</span>
+                    </div>
+                    <span class="font-mono text-[9px] font-bold text-gray-700">FaultyOperator</span>
+                  </div>
+                  
+                  <!-- Node 3: Output Sink -->
+                  <div class="z-10 flex flex-col items-center gap-1">
+                    <div id="sink-node" class="w-14 h-14 rounded-none border-4 border-black bg-gray-200 border-dashed flex items-center justify-center neo-shadow text-gray-500 font-black text-xs">
+                      OUT
+                    </div>
+                    <span class="font-mono text-[9px] font-bold text-gray-500" id="sink-label">OfflineSink</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Simulated Terminal Console -->
+              <div class="border-4 border-black bg-black text-white p-4 font-mono text-[11px] mb-6 relative">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-2 mb-2">
+                  <span class="text-gray-500 flex items-center gap-1"><Terminal class="w-4 h-4" /> debug_shell.sh</span>
+                  <span class="text-color-chart-4 font-bold select-none">[!] ERROR</span>
+                </div>
+                <div class="space-y-1.5 max-h-36 overflow-y-auto" id="console-logs">
+                  <div class="text-gray-500">[00:00:01] Initializing Renoir scheduler...</div>
+                  <div class="text-gray-500">[00:00:01] Spawning 8 edge worker threads...</div>
+                  <div class="text-red-500 font-bold">[00:00:02] [PANIC] Thread 'main' panicked at 'route not found'</div>
+                  <div class="text-red-400">[00:00:02] [WARN] Operator 'FaultyOperator' returned 404 (UNRESOLVED)</div>
+                  <div class="text-red-400">[00:00:02] [FAIL] Connection broker: Sink node offline. Stream disrupted.</div>
+                  <div class="text-yellow-400 font-bold animate-pulse">[00:00:02] [PROMPT] Click '{m.error_404_visual_fix()}' to deploy hot-fix patch.</div>
+                </div>
+              </div>
+              
+              <!-- Fix Connection Action Button -->
+              <button 
+                type="button" 
+                class="w-full text-center font-black text-lg uppercase py-4 border-4 border-black bg-color-chart-3 text-black neo-shadow neo-hover-shift cursor-pointer select-none"
+                id="btn-fix-connection"
+              >
+                🛠️ {m.error_404_visual_fix()}
+              </button>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script define:vars={{ homeUrl: getRelativeLocaleUrl(lang, '/'), fixText: m.error_404_visual_fix(), fixedText: m.error_404_visual_fixed() }}>
+  const fixBtn = document.getElementById('btn-fix-connection');
+  const consoleLogs = document.getElementById('console-logs');
+  const connectionPath2 = document.getElementById('connection-path-2');
+  const operatorNode = document.getElementById('operator-node');
+  const operatorIcon = document.getElementById('operator-icon');
+  const operatorLabel = document.getElementById('operator-label');
+  const sinkNode = document.getElementById('sink-node');
+  const sinkLabel = document.getElementById('sink-label');
+  const diagBadge = document.getElementById('diag-badge');
+
+  if (fixBtn && consoleLogs) {
+    fixBtn.addEventListener('click', () => {
+      // Disable button to prevent double click
+      fixBtn.disabled = true;
+      fixBtn.style.pointerEvents = 'none';
+      fixBtn.style.opacity = '0.5';
+      fixBtn.innerText = '⚙️ Hot-patching...';
+
+      // Log updates in terminal
+      appendLog('[00:00:03] [INFO] Requesting hot-fix compile...', 'text-cyan-400');
+      
+      setTimeout(() => {
+        appendLog('[00:00:04] [INFO] Code injection successful. Rebuilding pipeline DAG...', 'text-cyan-400');
+        
+        // Visual changes: update connections & states
+        if (connectionPath2) {
+          connectionPath2.setAttribute('stroke', '#00D696');
+          connectionPath2.setAttribute('stroke-dasharray', 'none');
+          connectionPath2.setAttribute('stroke-width', '6');
+        }
+        
+        if (operatorNode) {
+          operatorNode.classList.remove('bg-color-chart-4', 'animate-pulse');
+          operatorNode.classList.add('bg-color-chart-2');
+          if (operatorLabel) operatorLabel.innerText = 'OK';
+          if (operatorIcon) {
+            operatorIcon.outerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle-2 w-5 h-5 mb-0.5 text-black"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>';
+          }
+        }
+
+        if (sinkNode) {
+          sinkNode.classList.remove('bg-gray-200', 'border-dashed', 'text-gray-500');
+          sinkNode.classList.add('bg-color-chart-2', 'text-black');
+          sinkNode.innerHTML = 'ONLINE';
+        }
+        
+        if (sinkLabel) {
+          sinkLabel.classList.remove('text-gray-500');
+          sinkLabel.classList.add('text-gray-700', 'font-black');
+        }
+
+        if (diagBadge) {
+          diagBadge.classList.remove('bg-color-chart-4');
+          diagBadge.classList.add('bg-color-chart-2');
+          diagBadge.innerText = 'HEALTHY';
+        }
+      }, 1000);
+
+      setTimeout(() => {
+        appendLog('[00:00:05] [OK] All nodes reporting HEALTHY status.', 'text-green-400 font-bold');
+        appendLog('[00:00:05] [INFO] Redirecting data stream to home base...', 'text-cyan-400');
+        fixBtn.innerText = `✔️ ${fixedText}`;
+      }, 2000);
+
+      setTimeout(() => {
+        window.location.href = homeUrl;
+      }, 3500);
+    });
+  }
+
+  function appendLog(text, className) {
+    if (!consoleLogs) return;
+    const logEl = document.createElement('div');
+    if (className) {
+      logEl.className = className;
+    }
+    logEl.innerText = text;
+    consoleLogs.appendChild(logEl);
+    consoleLogs.scrollTop = consoleLogs.scrollHeight;
+  }
+</script>
