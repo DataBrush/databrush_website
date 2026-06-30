@@ -10,7 +10,9 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.3",
     "@lucide/astro": "^1.21.0",
+    "@rolldown/binding-linux-x64-gnu": "^1.1.3",
     "astro": "^5.2.0",
     "marked": "^12.0.1",
     "tailwindcss": "^4.0.0-beta.8",

@@ -48,6 +48,21 @@ if (activePath.startsWith(`/${lang}/`)) {
     <title>{siteTitle}</title>
     <meta name="description" content={siteDesc} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={Astro.url} />
+
+    <!-- Open Graph / Facebook / LinkedIn -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={siteTitle} />
+    <meta property="og:description" content={siteDesc} />
+    <meta property="og:image" content={new URL('/assets/databrush.svg', Astro.site)} />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={Astro.url} />
+    <meta property="twitter:title" content={siteTitle} />
+    <meta property="twitter:description" content={siteDesc} />
+    <meta property="twitter:image" content={new URL('/assets/databrush.svg', Astro.site)} />
     
     <!-- Load Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -286,8 +301,8 @@ if (activePath.startsWith(`/${lang}/`)) {
             Legal
           </h4>
           <ul class="space-y-2 font-bold text-sm">
-            <li><a href="#" class="hover:underline">{m.footer_privacy_policy()}</a></li>
-            <li><a href="#" class="hover:underline">{m.footer_cookie_policy()}</a></li>
+            <li><a href={getRelativeLocaleUrl(lang, '/privacy')} class="hover:underline">{m.footer_privacy_policy()}</a></li>
+            <li><a href={getRelativeLocaleUrl(lang, '/cookie')} class="hover:underline">{m.footer_cookie_policy()}</a></li>
             <li class="pt-2 font-mono text-xs text-gray-500">
               ACM DEBS 1st Place (2023)<br/>
               Politecnico di Milano Spin-off
@@ -306,6 +321,48 @@ if (activePath.startsWith(`/${lang}/`)) {
       </div>
     </footer>
 
+    <!-- Cookie Consent Banner -->
+    <div 
+      id="cookie-consent-banner" 
+      class="hidden fixed bottom-6 right-6 left-6 md:left-auto md:w-[420px] bg-white border-4 border-black p-6 neo-shadow-lg z-50 transition-all duration-300"
+    >
+      <div class="flex flex-col gap-4">
+        <div class="flex items-start gap-3">
+          <Globe class="w-6 h-6 text-black shrink-0 mt-0.5" />
+          <div>
+            <h5 class="font-black text-md uppercase tracking-tight text-black">
+              {lang === 'it' ? 'Informativa sui Cookie' : 'Cookie Preferences'}
+            </h5>
+            <p class="text-xs font-bold text-gray-700 mt-1 leading-relaxed">
+              {lang === 'it' 
+                ? 'Utilizziamo i cookie per migliorare la tua esperienza sul nostro sito. Puoi accettare o rifiutare i cookie opzionali.' 
+                : 'We use cookies to optimize your experience. You can choose to accept all cookies or refuse non-essential ones.'}
+              <a 
+                href={getRelativeLocaleUrl(lang, '/cookie')} 
+                class="underline hover:text-color-chart-1 font-black whitespace-nowrap ml-1"
+              >
+                {lang === 'it' ? 'Leggi di più' : 'Read more'}
+              </a>
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-3 justify-end mt-2">
+          <button 
+            id="btn-cookie-reject" 
+            class="px-4 py-2 border-2 border-black font-black text-xs uppercase bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
+          >
+            {lang === 'it' ? 'Rifiuta' : 'Reject'}
+          </button>
+          <button 
+            id="btn-cookie-accept" 
+            class="px-4 py-2 border-4 border-black font-black text-xs uppercase bg-color-chart-3 text-black neo-shadow hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[5px_5px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[3px_3px_0px_#000] transition-all cursor-pointer"
+          >
+            {lang === 'it' ? 'Accetta Tutti' : 'Accept All'}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Interactive Scripts -->
     <script>
       const mobileMenuBtn = document.getElementById('mobile-menu-btn');
@@ -318,6 +375,28 @@ if (activePath.startsWith(`/${lang}/`)) {
           mobileMenu.classList.toggle('hidden');
           menuIcon?.classList.toggle('hidden');
           closeIcon?.classList.toggle('hidden');
+        });
+      }
+
+      // Cookie consent handling
+      const banner = document.getElementById('cookie-consent-banner');
+      const acceptBtn = document.getElementById('btn-cookie-accept');
+      const rejectBtn = document.getElementById('btn-cookie-reject');
+
+      if (banner && acceptBtn && rejectBtn) {
+        const consent = localStorage.getItem('cookie-consent');
+        if (!consent) {
+          banner.classList.remove('hidden');
+        }
+
+        acceptBtn.addEventListener('click', () => {
+          localStorage.setItem('cookie-consent', 'accepted');
+          banner.classList.add('hidden');
+        });
+
+        rejectBtn.addEventListener('click', () => {
+          localStorage.setItem('cookie-consent', 'rejected');
+          banner.classList.add('hidden');
         });
       }
     </script>

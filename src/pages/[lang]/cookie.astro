@@ -1,0 +1,123 @@
+---
+import fs from 'fs';
+import path from 'path';
+import { marked } from 'marked';
+import Layout from '~/layouts/Layout.astro';
+import { getLanguagePaths, loadLocale } from '~/lib/i18n';
+
+export function getStaticPaths() {
+  return getLanguagePaths();
+}
+
+const { lang } = Astro.params;
+const m = loadLocale(lang);
+
+const filePath = path.resolve(`./src/data/legal/cookie/${lang}.md`);
+let title = lang === 'it' ? 'Informativa sui Cookie' : 'Cookie Policy';
+let contentHtml = '';
+
+try {
+  const rawContent = fs.readFileSync(filePath, 'utf-8');
+  let markdown = rawContent;
+
+  // Strip simple Frontmatter and extract title
+  if (rawContent.startsWith('---')) {
+    const parts = rawContent.split('---');
+    if (parts.length >= 3) {
+      const frontmatter = parts[1];
+      const titleMatch = frontmatter.match(/title:\s*['"](.+?)['"]/);
+      if (titleMatch) {
+        title = titleMatch[1];
+      }
+      markdown = parts.slice(2).join('---');
+    }
+  }
+
+  contentHtml = await marked.parse(markdown);
+} catch (err) {
+  console.error(err);
+  contentHtml = `<p>Error loading document.</p>`;
+}
+
+const metadata = {
+  title: title,
+  description: title
+};
+---
+
+<Layout metadata={metadata}>
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <article class="border-4 border-black p-8 sm:p-12 bg-white neo-shadow-lg text-black">
+      <div class="doc-content prose prose-headings:font-black prose-h1:text-4xl prose-h2:text-2xl prose-p:font-medium prose-p:leading-relaxed">
+        <Fragment set:html={contentHtml} />
+      </div>
+    </article>
+  </div>
+</Layout>
+
+<style is:global>
+  /* Neobrutalist markdown styles for consistent typography */
+  .doc-content h1 {
+    font-size: 2.25rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    border-bottom: 4px solid #000;
+    padding-bottom: 0.75rem;
+  }
+  
+  .doc-content h2 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 2px solid #000;
+    padding-bottom: 0.5rem;
+  }
+
+  .doc-content h3 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .doc-content p {
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.75;
+    margin-bottom: 1.5rem;
+    color: #1a1a1a;
+  }
+
+  .doc-content ul {
+    list-style-type: disc;
+    padding-left: 1.75rem;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+  }
+
+  .doc-content li {
+    margin-bottom: 0.5rem;
+  }
+
+  .doc-content strong {
+    font-weight: 900;
+    background-color: #faf089;
+    padding: 0 2px;
+  }
+
+  .doc-content a {
+    font-weight: 700;
+    color: #000;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 2px;
+  }
+  
+  .doc-content a:hover {
+    background-color: var(--color-chart-1);
+  }
+</style>
