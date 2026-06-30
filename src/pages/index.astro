@@ -1,16 +1,278 @@
 ---
-// Redirect to English version as default
+import '../../theming.css';
 ---
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta http-equiv="refresh" content="0;url=/en/" />
-    <script>
-      window.location.pathname = '/en/';
-    </script>
-    <title>Redirecting...</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Databrush | High-Performance Data Infrastructure</title>
+    
+    <!-- Load Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Noscript Fallback Redirect -->
+    <noscript>
+      <meta http-equiv="refresh" content="0;url=/en/" />
+    </noscript>
   </head>
-  <body>
-    <p>Redirecting to <a href="/en/">/en/</a></p>
+  <body class="bg-background text-foreground min-h-screen flex flex-col justify-between items-center py-12 px-4 select-none relative overflow-hidden">
+    <!-- Neubrutalist Grid Background -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#00000012_1px,transparent_1px),linear-gradient(to_bottom,#00000012_1px,transparent_1px)] bg-[size:30px_30px] -z-10"></div>
+    
+    <!-- Header: Databrush Branding -->
+    <div class="flex items-center gap-4 border-4 border-black px-8 py-4 bg-white neo-shadow text-black shrink-0 z-10">
+      <img src="/assets/databrush.svg" alt="Databrush Logo" class="w-14 h-14 object-contain" />
+      <span class="font-black text-4xl tracking-tighter uppercase font-sans">Databrush</span>
+      <span class="bg-black text-white px-3 py-1 text-base font-bold font-mono">RENOIR</span>
+    </div>
+
+    <!-- Main Section: SVG Pipeline -->
+    <div class="relative w-full max-w-5xl h-[400px] my-auto flex items-center justify-center z-10 overflow-visible">
+      <svg viewBox="0 0 800 300" class="w-full h-full absolute inset-0 overflow-visible pointer-events-none">
+        <!-- SVG Connections & Paths -->
+        
+        <!-- Path 1: Source to Filter (S-Curve) -->
+        <path d="M 155,150 C 200,150 200,80 245,80" fill="none" stroke="black" stroke-width="6" stroke-linecap="round" />
+        <path d="M 155,150 C 200,150 200,80 245,80" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" />
+
+        <!-- Path 2: Source to Map (S-Curve) -->
+        <path d="M 155,150 C 200,150 200,220 245,220" fill="none" stroke="black" stroke-width="6" stroke-linecap="round" />
+        <path d="M 155,150 C 200,150 200,220 245,220" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" />
+
+        <!-- Path 3: Filter to Aggregate (S-Curve) -->
+        <path d="M 355,80 C 400,80 400,150 445,150" fill="none" stroke="black" stroke-width="6" stroke-linecap="round" />
+        <path d="M 355,80 C 400,80 400,150 445,150" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" />
+
+        <!-- Path 4: Map to Aggregate (S-Curve) -->
+        <path d="M 355,220 C 400,220 400,150 445,150" fill="none" stroke="black" stroke-width="6" stroke-linecap="round" />
+        <path d="M 355,220 C 400,220 400,150 445,150" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" />
+
+        <!-- Path 5: Aggregate to Sink (Straight Line) -->
+        <path d="M 555,150 H 645" fill="none" stroke="black" stroke-width="6" stroke-linecap="round" />
+        <path d="M 555,150 H 645" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" />
+
+        <!-- Flowing Particles -->
+        <!-- Source -> Filter particles (Purple) -->
+        <circle r="6" fill="#A985FF" stroke="black" stroke-width="2">
+          <animateMotion dur="1.8s" repeatCount="indefinite" path="M 155,150 C 200,150 200,80 245,80" begin="0s" />
+        </circle>
+        <circle r="6" fill="#A985FF" stroke="black" stroke-width="2">
+          <animateMotion dur="1.8s" repeatCount="indefinite" path="M 155,150 C 200,150 200,80 245,80" begin="0.6s" />
+        </circle>
+        <circle r="6" fill="#A985FF" stroke="black" stroke-width="2">
+          <animateMotion dur="1.8s" repeatCount="indefinite" path="M 155,150 C 200,150 200,80 245,80" begin="1.2s" />
+        </circle>
+
+        <!-- Source -> Map particles (Blue) -->
+        <circle r="6" fill="#0099FF" stroke="black" stroke-width="2">
+          <animateMotion dur="1.8s" repeatCount="indefinite" path="M 155,150 C 200,150 200,220 245,220" begin="0.3s" />
+        </circle>
+        <circle r="6" fill="#0099FF" stroke="black" stroke-width="2">
+          <animateMotion dur="1.8s" repeatCount="indefinite" path="M 155,150 C 200,150 200,220 245,220" begin="0.9s" />
+        </circle>
+        <circle r="6" fill="#0099FF" stroke="black" stroke-width="2">
+          <animateMotion dur="1.8s" repeatCount="indefinite" path="M 155,150 C 200,150 200,220 245,220" begin="1.5s" />
+        </circle>
+
+        <!-- Filter -> Aggregate particles (Yellow) -->
+        <circle r="6" fill="#FACC00" stroke="black" stroke-width="2">
+          <animateMotion dur="1.8s" repeatCount="indefinite" path="M 355,80 C 400,80 400,150 445,150" begin="0.1s" />
+        </circle>
+        <circle r="6" fill="#FACC00" stroke="black" stroke-width="2">
+          <animateMotion dur="1.8s" repeatCount="indefinite" path="M 355,80 C 400,80 400,150 445,150" begin="0.7s" />
+        </circle>
+        <circle r="6" fill="#FACC00" stroke="black" stroke-width="2">
+          <animateMotion dur="1.8s" repeatCount="indefinite" path="M 355,80 C 400,80 400,150 445,150" begin="1.3s" />
+        </circle>
+
+        <!-- Map -> Aggregate particles (Blue) -->
+        <circle r="6" fill="#0099FF" stroke="black" stroke-width="2">
+          <animateMotion dur="1.8s" repeatCount="indefinite" path="M 355,220 C 400,220 400,150 445,150" begin="0.4s" />
+        </circle>
+        <circle r="6" fill="#0099FF" stroke="black" stroke-width="2">
+          <animateMotion dur="1.8s" repeatCount="indefinite" path="M 355,220 C 400,220 400,150 445,150" begin="1.0s" />
+        </circle>
+        <circle r="6" fill="#0099FF" stroke="black" stroke-width="2">
+          <animateMotion dur="1.8s" repeatCount="indefinite" path="M 355,220 C 400,220 400,150 445,150" begin="1.6s" />
+        </circle>
+
+        <!-- Aggregate -> Sink particles (Green) -->
+        <circle r="6" fill="#00D696" stroke="black" stroke-width="2">
+          <animateMotion dur="1.2s" repeatCount="indefinite" path="M 555,150 H 645" begin="0s" />
+        </circle>
+        <circle r="6" fill="#00D696" stroke="black" stroke-width="2">
+          <animateMotion dur="1.2s" repeatCount="indefinite" path="M 555,150 H 645" begin="0.4s" />
+        </circle>
+        <circle r="6" fill="#00D696" stroke="black" stroke-width="2">
+          <animateMotion dur="1.2s" repeatCount="indefinite" path="M 555,150 H 645" begin="0.8s" />
+        </circle>
+
+        <!-- Node 1: SOURCE -->
+        <g>
+          <!-- Shadow -->
+          <rect x="49" y="131.5" width="110" height="45" rx="0" fill="black" />
+          <!-- Main Body -->
+          <rect x="45" y="127.5" width="110" height="45" rx="0" fill="#A985FF" stroke="black" stroke-width="4" />
+          <!-- Texts -->
+          <text x="100" y="144" font-family="Lexend, Space Grotesk, sans-serif" font-weight="900" font-size="12" fill="black" text-anchor="middle" dominant-baseline="central">SOURCE</text>
+          <text x="100" y="158" font-family="Space Mono, monospace" font-weight="700" font-size="8" fill="black" text-anchor="middle" dominant-baseline="central">Data Inflow</text>
+        </g>
+
+        <!-- Node 2: FILTER -->
+        <g>
+          <!-- Shadow -->
+          <rect x="249" y="61.5" width="110" height="45" rx="0" fill="black" />
+          <!-- Main Body -->
+          <rect x="245" y="57.5" width="110" height="45" rx="0" fill="#FACC00" stroke="black" stroke-width="4" />
+          <!-- Texts -->
+          <text x="300" y="74" font-family="Lexend, Space Grotesk, sans-serif" font-weight="900" font-size="12" fill="black" text-anchor="middle" dominant-baseline="central">FILTER</text>
+          <text x="300" y="88" font-family="Space Mono, monospace" font-weight="700" font-size="8" fill="black" text-anchor="middle" dominant-baseline="central">Stream Clean</text>
+        </g>
+
+        <!-- Node 3: MAP -->
+        <g>
+          <!-- Shadow -->
+          <rect x="249" y="201.5" width="110" height="45" rx="0" fill="black" />
+          <!-- Main Body -->
+          <rect x="245" y="197.5" width="110" height="45" rx="0" fill="#0099FF" stroke="black" stroke-width="4" />
+          <!-- Texts -->
+          <text x="300" y="214" font-family="Lexend, Space Grotesk, sans-serif" font-weight="900" font-size="12" fill="black" text-anchor="middle" dominant-baseline="central">MAP</text>
+          <text x="300" y="228" font-family="Space Mono, monospace" font-weight="700" font-size="8" fill="black" text-anchor="middle" dominant-baseline="central">Transform</text>
+        </g>
+
+        <!-- Node 4: REDUCE -->
+        <g>
+          <!-- Shadow -->
+          <rect x="449" y="131.5" width="110" height="45" rx="0" fill="black" />
+          <!-- Main Body -->
+          <rect x="445" y="127.5" width="110" height="45" rx="0" fill="#FF4D50" stroke="black" stroke-width="4" />
+          <!-- Texts -->
+          <text x="500" y="144" font-family="Lexend, Space Grotesk, sans-serif" font-weight="900" font-size="12" fill="black" text-anchor="middle" dominant-baseline="central">REDUCE</text>
+          <text x="500" y="158" font-family="Space Mono, monospace" font-weight="700" font-size="8" fill="black" text-anchor="middle" dominant-baseline="central">Aggregate</text>
+        </g>
+
+        <!-- Node 5: SINK -->
+        <g>
+          <!-- Shadow -->
+          <rect x="649" y="131.5" width="110" height="45" rx="0" fill="black" />
+          <!-- Main Body -->
+          <rect x="645" y="127.5" width="110" height="45" rx="0" fill="#00D696" stroke="black" stroke-width="4" />
+          <!-- Texts -->
+          <text x="700" y="144" font-family="Lexend, Space Grotesk, sans-serif" font-weight="900" font-size="12" fill="black" text-anchor="middle" dominant-baseline="central">SINK</text>
+          <text x="700" y="158" font-family="Space Mono, monospace" font-weight="700" font-size="8" fill="black" text-anchor="middle" dominant-baseline="central">Analytics</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Console Section -->
+    <div class="w-full max-w-3xl border-4 border-black bg-black text-[#00D696] p-6 font-mono text-[13px] neo-shadow shrink-0 z-10">
+      <div class="flex items-center justify-between border-b border-gray-800 pb-3 mb-3">
+        <span class="text-gray-500 flex items-center gap-2 text-xs">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 17 10 11 4 5"></polyline>
+            <line x1="12" y1="19" x2="20" y2="19"></line>
+          </svg>
+          renoir_loader.sh
+        </span>
+        <span class="text-color-chart-3 font-bold select-none animate-pulse text-xs" id="console-status">CONNECTING</span>
+      </div>
+      <div class="space-y-1.5 h-32 overflow-y-auto text-xs" id="console-logs">
+        <!-- Log entries will be written here dynamically -->
+      </div>
+    </div>
+
+    <!-- Enter Site Action Button -->
+    <a id="btn-enter-site" href="/en/" class="w-full max-w-3xl text-center font-black text-xl uppercase py-5 border-4 border-black bg-[#00D696] text-black neo-shadow neo-hover-shift cursor-pointer select-none z-10 shrink-0 mt-4 no-underline">
+      Enter Site
+    </a>
+
+    <!-- Client-side script -->
+    <script>
+      const consoleLogs = document.getElementById('console-logs');
+      const consoleStatus = document.getElementById('console-status');
+      const btnEnter = document.getElementById('btn-enter-site') as HTMLAnchorElement | null;
+
+      let isPaused = false;
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('debug') || urlParams.has('pause')) {
+        isPaused = true;
+      }
+
+      function appendLog(message: string, isBold: boolean = false) {
+        if (!consoleLogs) return;
+        const entry = document.createElement('div');
+        entry.className = isBold ? 'font-bold text-white font-mono' : 'font-mono';
+        entry.textContent = message;
+        consoleLogs.appendChild(entry);
+        consoleLogs.scrollTop = consoleLogs.scrollHeight;
+      }
+
+      // 1. Initial Load Message
+      setTimeout(() => appendLog('[00:00.02] INFO: Initializing Renoir engine...'), 100);
+
+      // 2. Language Detection
+      let targetPath = '/en/';
+      setTimeout(() => {
+        const userLang = navigator.language || 'en';
+        const isIt = userLang.toLowerCase().startsWith('it');
+        targetPath = isIt ? '/it/' : '/en/';
+        
+        appendLog(`[00:00.25] INFO: Reading system language preference...`);
+        setTimeout(() => {
+          appendLog(`[00:00.45] INFO: Preferred language detected: '${userLang}'. Targeting ${targetPath}`, true);
+          
+          if (btnEnter) {
+            btnEnter.href = targetPath;
+            btnEnter.textContent = isIt ? 'ENTRA NEL SITO' : 'ENTER SITE';
+          }
+
+          // Prefetch target page resources
+          const link = document.createElement('link');
+          link.rel = 'prefetch';
+          link.href = targetPath;
+          document.head.appendChild(link);
+          appendLog(`[00:00.60] INFO: Prefetching resources for target path: ${targetPath}`);
+        }, 200);
+      }, 400);
+
+      // 3. Connect broker simulation
+      setTimeout(() => {
+        appendLog('[00:00.90] INFO: Establishing edge worker connections...');
+      }, 950);
+
+      // 4. Ready / Handshake
+      setTimeout(() => {
+        if (isPaused) {
+          appendLog('[00:01.20] INFO: Connection handshake verified. Re-routing data stream... [HALTED]', true);
+          if (consoleStatus) {
+            consoleStatus.textContent = 'PAUSED';
+            consoleStatus.className = 'text-[#FF4D50] font-bold select-none';
+          }
+        } else {
+          appendLog('[00:01.20] INFO: Connection handshake verified. Re-routing data stream...', true);
+          if (consoleStatus) {
+            consoleStatus.textContent = 'READY';
+            consoleStatus.className = 'text-[#00D696] font-bold select-none';
+          }
+        }
+      }, 1250);
+
+      // 5. Final Redirect
+      setTimeout(() => {
+        if (isPaused) {
+          appendLog('[00:01.40] INFO: Renoir environment ready. Redirection halted (PAUSED).', true);
+          return;
+        }
+        appendLog('[00:01.40] INFO: Renoir environment ready. Redirecting...', true);
+        setTimeout(() => {
+          if (!isPaused) {
+            window.location.href = targetPath;
+          }
+        }, 100);
+      }, 1450);
+    </script>
   </body>
 </html>

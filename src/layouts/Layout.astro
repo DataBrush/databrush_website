@@ -135,9 +135,82 @@ if (activePath.startsWith(`/${lang}/`)) {
       .faq-details[open] {
         background-color: #ffffff;
       }
+
+      /* Neubrutalist Custom Cursor */
+      #custom-cursor {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 99999;
+        will-change: transform;
+      }
+
+      #custom-cursor-dot {
+        width: 14px;
+        height: 14px;
+        background-color: var(--chart-1); /* Neubrutalist Sleek Purple */
+        border: 2px solid #000000;
+        box-shadow: 2px 2px 0px #000000;
+        margin-top: -7px;
+        margin-left: -7px;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                    background-color 0.15s ease, 
+                    box-shadow 0.15s ease,
+                    opacity 0.15s ease;
+        transform-origin: center center;
+        opacity: 0;
+      }
+
+      #custom-cursor.visible #custom-cursor-dot {
+        opacity: 1;
+      }
+
+      /* Hover state: scale up, rotate 45 degrees, change to yellow, adjust shadow */
+      #custom-cursor.hovering #custom-cursor-dot {
+        transform: scale(1.6) rotate(45deg);
+        background-color: var(--chart-3); /* Neubrutalist yellow */
+        box-shadow: 3px 3px 0px #000000;
+      }
+
+      /* Hide standard cursors on fine pointer devices */
+      @media (pointer: fine) {
+        .custom-cursor-enabled,
+        .custom-cursor-enabled * {
+          cursor: none !important;
+        }
+
+        /* Keep text caret on text inputs and textareas for accessibility */
+        .custom-cursor-enabled input[type="text"],
+        .custom-cursor-enabled input[type="email"],
+        .custom-cursor-enabled input[type="search"],
+        .custom-cursor-enabled input[type="password"],
+        .custom-cursor-enabled input[type="url"],
+        .custom-cursor-enabled input[type="number"],
+        .custom-cursor-enabled textarea {
+          cursor: text !important;
+        }
+
+        /* Hide the custom cursor when hovering over text inputs to let the native text caret show */
+        .custom-cursor-enabled:has(input[type="text"]:hover) #custom-cursor-dot,
+        .custom-cursor-enabled:has(input[type="email"]:hover) #custom-cursor-dot,
+        .custom-cursor-enabled:has(input[type="search"]:hover) #custom-cursor-dot,
+        .custom-cursor-enabled:has(input[type="password"]:hover) #custom-cursor-dot,
+        .custom-cursor-enabled:has(input[type="url"]:hover) #custom-cursor-dot,
+        .custom-cursor-enabled:has(input[type="number"]:hover) #custom-cursor-dot,
+        .custom-cursor-enabled:has(textarea:hover) #custom-cursor-dot {
+          opacity: 0;
+        }
+      }
     </style>
   </head>
   <body class="bg-background text-foreground min-h-screen flex flex-col antialiased selection:bg-black selection:text-white">
+    <!-- Custom Cursor DOM Elements -->
+    <div id="custom-cursor">
+      <div id="custom-cursor-dot"></div>
+    </div>
+
     <!-- Neubrutalist Header / Navbar -->
     <header class="sticky top-0 z-50 w-full bg-secondary-background border-b-4 border-black">
       <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -398,6 +471,65 @@ if (activePath.startsWith(`/${lang}/`)) {
           localStorage.setItem('cookie-consent', 'rejected');
           banner.classList.add('hidden');
         });
+      }
+
+      // Custom Cursor Logic
+      const cursor = document.getElementById('custom-cursor');
+      const cursorDot = document.getElementById('custom-cursor-dot');
+      
+      if (cursor && cursorDot && window.matchMedia('(pointer: fine)').matches) {
+        document.documentElement.classList.add('custom-cursor-enabled');
+        cursor.style.display = 'block';
+        
+        let mouseX = 0;
+        let mouseY = 0;
+        let isMoving = false;
+        
+        const updatePosition = () => {
+          cursor.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+          requestAnimationFrame(updatePosition);
+        };
+        
+        document.addEventListener('mousemove', (e) => {
+          mouseX = e.clientX;
+          mouseY = e.clientY;
+          
+          if (!isMoving) {
+            cursor.classList.add('visible');
+            isMoving = true;
+            requestAnimationFrame(updatePosition);
+          }
+        });
+        
+        document.addEventListener('mouseleave', () => {
+          cursor.classList.remove('visible');
+        });
+        
+        document.addEventListener('mouseenter', () => {
+          cursor.classList.add('visible');
+        });
+
+        // Toggle hover class for links and buttons
+        const addHover = () => cursor.classList.add('hovering');
+        const removeHover = () => cursor.classList.remove('hovering');
+        
+        const attachHoverListeners = () => {
+          const selectAllClickable = 'a, button, input[type="submit"], input[type="button"], input[type="checkbox"], input[type="radio"], select, [role="button"], .neo-hover-shift, summary';
+          document.querySelectorAll(selectAllClickable).forEach(el => {
+            el.removeEventListener('mouseenter', addHover);
+            el.removeEventListener('mouseleave', removeHover);
+            el.addEventListener('mouseenter', addHover);
+            el.addEventListener('mouseleave', removeHover);
+          });
+        };
+        
+        attachHoverListeners();
+        
+        // Handle elements added dynamically
+        const observer = new MutationObserver(() => {
+          attachHoverListeners();
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
       }
     </script>
   </body>
