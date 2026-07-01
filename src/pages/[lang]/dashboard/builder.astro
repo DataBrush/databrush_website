@@ -1,6 +1,7 @@
 ---
 import Layout from '~/layouts/Layout.astro';
 import { loadLocale, getLanguagePaths } from '~/lib/i18n';
+import { getRelativeLocaleUrl } from 'astro:i18n';
 
 export function getStaticPaths() {
   return getLanguagePaths();
@@ -51,7 +52,7 @@ const isIt = lang === 'it';
   <div class="w-full max-w-none px-4 sm:px-8 lg:px-12 py-12">
     
     <!-- Redesigned Neobrutalist Header -->
-    <div class="border-4 border-black bg-white p-6 neo-shadow flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+    <div class="border-4 border-black bg-white p-6 neo-shadow flex flex-col xl:flex-row items-center justify-between gap-4 mb-8">
       <div class="flex items-center gap-3">
         <div class="w-16 h-16 border-4 border-black flex items-center justify-center font-black text-2xl neo-shadow select-none text-black shrink-0">
           <img src="/assets/Renoir.png" alt="Renoir Logo" class="w-full h-full object-contain" />
@@ -65,14 +66,23 @@ const isIt = lang === 'it';
           </p>
         </div>
       </div>
+
+      <!-- Renoir Capabilities Info Box -->
+      <div class="border-2 border-black bg-color-chart-3 p-3 text-black flex-1 max-w-lg xl:mx-4 neo-shadow w-full">
+        <span class="font-black block uppercase text-xs mb-0.5">🚀 {isIt ? 'Solo una frazione di Renoir' : 'Only a fraction of Renoir'}</span>
+        <span class="text-xs font-bold block text-gray-800 leading-normal">
+          {isIt 
+            ? 'Questo strumento mostra solo una parte delle capacità di Renoir. Per le funzionalità complete, consulta la documentazione o contattaci.' 
+            : 'This tool shows only a fraction of what Renoir is capable of. For full features, read the docs or contact us.'}
+        </span>
+        <div class="flex gap-4 mt-2">
+          <a href="/docs/" class="underline font-black hover:text-gray-700 text-xs uppercase">{isIt ? 'Leggi i Docs' : 'Read Docs'} →</a>
+          <a href={getRelativeLocaleUrl(lang, '/contact')} class="underline font-black hover:text-gray-700 text-xs uppercase ml-auto">{isIt ? 'Contattaci' : 'Contact Us'} →</a>
+        </div>
+      </div>
       
       <!-- Toolbar Controls -->
       <div class="flex flex-wrap items-center gap-4">
-        <!-- Play / Pause Simulation -->
-        <button class="sketch-btn active font-black text-sm uppercase px-4 py-2 border-2 border-black bg-color-chart-3 text-black hover:bg-yellow-300 neo-shadow flex items-center gap-2" id="btn-play-pause-builder">
-          <span class="icon">⏸</span> {isIt ? 'Pausa Simulazione' : 'Pause Sim'}
-        </button>
-
         <!-- Clear / Reset Canvas -->
         <button class="sketch-btn font-black text-sm uppercase px-4 py-2 border-2 border-black bg-white text-black hover:bg-gray-100 neo-shadow flex items-center gap-2" id="btn-clear-canvas">
           <span class="icon">✨</span> {isIt ? 'Svuota Canvas' : 'Clear Canvas'}
@@ -285,9 +295,17 @@ const isIt = lang === 'it';
 
                 <!-- Consultation & Download Actions -->
                 <div class="flex flex-col gap-2 pt-2">
-                  <button class="sketch-btn text-xs font-black uppercase px-3 py-2 border-2 border-black bg-color-chart-2 hover:bg-green-300 text-black w-full text-center justify-center cursor-pointer select-none flex items-center gap-1" id="btn-download-pipeline">
-                    📥 {isIt ? 'Scarica Pipeline' : 'Download Pipeline'}
-                  </button>
+                  <div class="grid grid-cols-2 gap-2">
+                    <button class="sketch-btn text-xs font-black uppercase px-2 py-2 border-2 border-black bg-color-chart-2 hover:bg-green-300 text-black w-full text-center justify-center cursor-pointer select-none flex items-center gap-1" id="btn-download-pipeline">
+                      📥 {isIt ? 'Scarica' : 'Download'}
+                    </button>
+                    <button class="sketch-btn text-xs font-black uppercase px-2 py-2 border-2 border-black bg-white hover:bg-gray-100 text-black w-full text-center justify-center cursor-pointer select-none flex items-center gap-1" id="btn-import-pipeline">
+                      📤 {isIt ? 'Importa' : 'Import'}
+                    </button>
+                  </div>
+                  <!-- Hidden File Input for Importing -->
+                  <input type="file" id="import-pipeline-file-input" class="hidden" accept=".json" />
+
                   <button class="sketch-btn text-xs font-black uppercase px-3 py-2 border-2 border-black bg-color-chart-5 hover:bg-blue-400 text-white w-full text-center justify-center cursor-pointer select-none flex items-center gap-1" id="btn-consult-pipeline">
                     💬 {isIt ? 'Invia per Consulenza' : 'Request Consultation'}
                   </button>

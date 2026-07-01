@@ -891,23 +891,25 @@ function init() {
 
   // Play Pause Controls
   const btnPlaySim = document.getElementById('btn-play-pause-builder');
-  btnPlaySim.addEventListener('click', () => {
-    state.simRunning = !state.simRunning;
-    const statusVal = document.getElementById('stat-sim-status');
+  if (btnPlaySim) {
+    btnPlaySim.addEventListener('click', () => {
+      state.simRunning = !state.simRunning;
+      const statusVal = document.getElementById('stat-sim-status');
 
-    if (state.simRunning) {
-      btnPlaySim.classList.add('active');
-      btnPlaySim.innerHTML = isIt ? '<span class="icon">⏸</span> Pausa Simulazione' : '<span class="icon">⏸</span> Pause Sim';
-      if (statusVal) statusVal.textContent = isIt ? 'Attivo (Demo)' : 'Running (Demo)';
-      statusVal.className = 'value font-black text-sm text-green-600';
-    } else {
-      btnPlaySim.classList.remove('active');
-      btnPlaySim.innerHTML = isIt ? '<span class="icon">▶</span> Avvia Simulazione' : '<span class="icon">▶</span> Resume Sim';
-      if (statusVal) statusVal.textContent = isIt ? 'Pausa' : 'Paused';
-      statusVal.className = 'value font-black text-sm text-red-600';
-    }
-    drawConnections();
-  });
+      if (state.simRunning) {
+        btnPlaySim.classList.add('active');
+        btnPlaySim.innerHTML = isIt ? '<span class="icon">⏸</span> Pausa Simulazione' : '<span class="icon">⏸</span> Pause Sim';
+        if (statusVal) statusVal.textContent = isIt ? 'Attivo (Demo)' : 'Running (Demo)';
+        statusVal.className = 'value font-black text-sm text-green-600';
+      } else {
+        btnPlaySim.classList.remove('active');
+        btnPlaySim.innerHTML = isIt ? '<span class="icon">▶</span> Avvia Simulazione' : '<span class="icon">▶</span> Resume Sim';
+        if (statusVal) statusVal.textContent = isIt ? 'Pausa' : 'Paused';
+        statusVal.className = 'value font-black text-sm text-red-600';
+      }
+      drawConnections();
+    });
+  }
 
   // Clear workspace button
   document.getElementById('btn-clear-canvas').addEventListener('click', clearWorkspace);
@@ -922,10 +924,17 @@ function init() {
   updateCanvasTransform();
   selectNode(null);
 
-  // Download and Consultation buttons
+  // Download, Import and Consultation buttons
   const btnDownload = document.getElementById('btn-download-pipeline');
   if (btnDownload) {
     btnDownload.addEventListener('click', downloadPipeline);
+  }
+
+  const btnImport = document.getElementById('btn-import-pipeline');
+  const fileInput = document.getElementById('import-pipeline-file-input');
+  if (btnImport && fileInput) {
+    btnImport.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', importPipeline);
   }
   
   const btnConsult = document.getElementById('btn-consult-pipeline');
@@ -968,6 +977,40 @@ function downloadPipeline() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   logToConsole(isIt ? "Configurazione pipeline scaricata correttamente." : "Pipeline layout JSON downloaded successfully.");
+}
+
+// Import pipeline configuration layout JSON from local disk
+function importPipeline(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      const data = JSON.parse(evt.target.result);
+      if (!data.nodes || !data.links) {
+        throw new Error(isIt ? "Formato non valido: mancano nodi o collegamenti." : "Invalid format: missing nodes or links.");
+      }
+      
+      // Load workspace state
+      state.nodes = data.nodes;
+      state.links = data.links;
+      state.selectedNodeId = null;
+
+      // Re-render components
+      renderNodes();
+      drawConnections();
+      selectNode(null);
+      
+      logToConsole(isIt ? "Configurazione pipeline importata correttamente." : "Pipeline layout JSON imported successfully.");
+    } catch (err) {
+      alert((isIt ? "Errore importazione: " : "Import error: ") + err.message);
+      logToConsole((isIt ? "Errore caricamento: " : "Error loading import file: ") + err.message);
+    }
+    // Reset file input value to allow re-importing the same file
+    e.target.value = '';
+  };
+  reader.readAsText(file);
 }
 
 // Engineers consultation request modal triggers
