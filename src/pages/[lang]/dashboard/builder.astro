@@ -507,8 +507,10 @@ const isIt = lang === 'it';
       background: #555;
       border: 1px solid #000;
     }
-    .log-console::-webkit-scrollbar-thumb:hover, pre::-webkit-scrollbar-thumb:hover {
-      background: #888;
+    /* Disable live metrics speech bubbles over nodes in the custom builder */
+    .dag-node.selected .node-sketch-bubble {
+      display: none !important;
+      opacity: 0 !important;
     }
   </style>
 
