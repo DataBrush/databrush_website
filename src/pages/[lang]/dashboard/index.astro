@@ -131,6 +131,10 @@ const metadata = {
         <button class="scenario-btn sketch-btn text-xs font-black uppercase px-4 py-2 border-2 border-black bg-white text-black w-full md:w-auto" data-scenario="cdn">
           🌐 {m.db_scenario_cdn()}
         </button>
+        <div class="border-l-2 border-dashed border-black h-6 hidden md:block mx-1"></div>
+        <a href={`/${lang}/dashboard/builder/`} class="sketch-btn text-xs font-black uppercase px-4 py-2 border-2 border-black bg-color-chart-2 text-black hover:bg-green-300 w-full md:w-auto text-center flex items-center justify-center gap-1 select-none">
+          🛠️ {lang === 'it' ? 'Crea Pipeline' : 'Build Pipeline'}
+        </a>
       </div>
     </div>
 

@@ -1,0 +1,551 @@
+---
+import Layout from '~/layouts/Layout.astro';
+import { loadLocale, getLanguagePaths } from '~/lib/i18n';
+
+export function getStaticPaths() {
+  return getLanguagePaths();
+}
+
+const { lang } = Astro.params;
+const m = loadLocale(lang);
+
+const metadata = {
+  title: lang === 'it' ? 'Crea la tua Pipeline | Renoir' : 'Custom Pipeline Builder | Renoir',
+  description: 'Drag, drop and connect operators to build your own streaming data processing pipelines.'
+};
+
+const isIt = lang === 'it';
+---
+
+<Layout metadata={metadata}>
+  <!-- Load Neobrutalist Dashboard Styles -->
+  <link rel="stylesheet" href="/dashboard/style.css" />
+
+  <!-- SVG Hand-Drawn Filter and Connection Markers -->
+  <svg class="svg-filters" style="position: absolute; width: 0; height: 0;" aria-hidden="true">
+    <defs>
+      <!-- Filter to make borders look hand-drawn and slightly wavy -->
+      <filter id="hand-drawn-filter">
+        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <!-- Hand-drawn arrow markers -->
+      <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="#2d3748" />
+      </marker>
+      <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="#2b8a3e" />
+      </marker>
+      <marker id="arrow-dark" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="#9ca3af" />
+      </marker>
+      <marker id="arrow-black" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+      </marker>
+      <marker id="arrow-white" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff" />
+      </marker>
+    </defs>
+  </svg>
+
+  <div class="w-full max-w-none px-4 sm:px-8 lg:px-12 py-12">
+    
+    <!-- Redesigned Neobrutalist Header -->
+    <div class="border-4 border-black bg-white p-6 neo-shadow flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+      <div class="flex items-center gap-3">
+        <div class="w-16 h-16 border-4 border-black flex items-center justify-center font-black text-2xl neo-shadow select-none text-black shrink-0">
+          <img src="/assets/Renoir.png" alt="Renoir Logo" class="w-full h-full object-contain" />
+        </div>
+        <div>
+          <h1 class="font-black text-2xl uppercase leading-none text-black">
+            {isIt ? 'Costruttore di Pipeline' : 'Custom Pipeline Builder'}
+          </h1>
+          <p class="font-mono text-xs text-gray-500 mt-1">
+            {isIt ? 'Trascina gli operatori, collegali e genera codice Rust in tempo reale' : 'Drag & drop operators, connect them, and build real-time Rust data streams'}
+          </p>
+        </div>
+      </div>
+      
+      <!-- Toolbar Controls -->
+      <div class="flex flex-wrap items-center gap-4">
+        <!-- Play / Pause Simulation -->
+        <button class="sketch-btn active font-black text-sm uppercase px-4 py-2 border-2 border-black bg-color-chart-3 text-black hover:bg-yellow-300 neo-shadow flex items-center gap-2" id="btn-play-pause-builder">
+          <span class="icon">⏸</span> {isIt ? 'Pausa Simulazione' : 'Pause Sim'}
+        </button>
+
+        <!-- Clear / Reset Canvas -->
+        <button class="sketch-btn font-black text-sm uppercase px-4 py-2 border-2 border-black bg-white text-black hover:bg-gray-100 neo-shadow flex items-center gap-2" id="btn-clear-canvas">
+          <span class="icon">✨</span> {isIt ? 'Svuota Canvas' : 'Clear Canvas'}
+        </button>
+
+        <!-- Back to Dashboard -->
+        <a href={`/${lang}/dashboard`} class="sketch-btn font-black text-sm uppercase px-4 py-2 border-2 border-black bg-black text-white hover:bg-gray-800 neo-shadow flex items-center gap-2 select-none">
+          ➜ {isIt ? 'Torna alla Dashboard' : 'Back to Dashboard'}
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Workspace Layout Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Left Panel: Operators Palette -->
+      <aside class="lg:col-span-3 flex flex-col gap-6">
+        <div class="border-4 border-black bg-white p-6 neo-shadow">
+          <div class="border-b-2 border-black pb-3 mb-4">
+            <h2 class="font-black text-lg uppercase text-black">
+              {isIt ? 'Palette Operatori' : 'Operators Palette'}
+            </h2>
+            <p class="text-xs text-gray-500 font-mono mt-1">
+              {isIt ? 'Trascina nel canvas per aggiungere' : 'Drag & drop into canvas to place'}
+            </p>
+          </div>
+
+          <!-- Draggable Operator Cards -->
+          <div class="space-y-4">
+            
+            <!-- Source Card -->
+            <div 
+              class="palette-item border-2 border-black p-3 bg-color-chart-2 cursor-grab neo-shadow hover:translate-y-[-2px] active:cursor-grabbing transition-transform select-none"
+              draggable="true" 
+              data-operator-type="source"
+            >
+              <div class="flex items-center gap-2 text-black font-black text-sm uppercase">
+                <span class="text-xl">🔌</span> {isIt ? 'Sorgente (Source)' : 'Source'}
+              </div>
+              <p class="text-xs text-gray-700 font-bold mt-1">
+                {isIt ? 'Origine del flusso dati (Kafka, IoT, Webhook)' : 'Data ingestion endpoint (Kafka, IoT, HTTP)'}
+              </p>
+            </div>
+
+            <!-- Filter Card -->
+            <div 
+              class="palette-item border-2 border-black p-3 bg-color-chart-1 cursor-grab neo-shadow hover:translate-y-[-2px] active:cursor-grabbing transition-transform select-none"
+              draggable="true" 
+              data-operator-type="filter"
+            >
+              <div class="flex items-center gap-2 text-black font-black text-sm uppercase">
+                <span class="text-xl">🔍</span> {isIt ? 'Filtro (Filter)' : 'Filter'}
+              </div>
+              <p class="text-xs text-gray-700 font-bold mt-1">
+                {isIt ? 'Filtra record in base a regole condizionali' : 'Keeps data matching specified criteria'}
+              </p>
+            </div>
+
+            <!-- Map Card -->
+            <div 
+              class="palette-item border-2 border-black p-3 bg-color-chart-5 text-white cursor-grab neo-shadow hover:translate-y-[-2px] active:cursor-grabbing transition-transform select-none"
+              draggable="true" 
+              data-operator-type="map"
+            >
+              <div class="flex items-center gap-2 text-white font-black text-sm uppercase">
+                <span class="text-xl">🔄</span> {isIt ? 'Mappa (Map)' : 'Map'}
+              </div>
+              <p class="text-xs text-gray-200 font-bold mt-1">
+                {isIt ? 'Trasforma o arricchisce i campi del record' : 'Modifies or enriches event fields'}
+              </p>
+            </div>
+
+            <!-- Window Card -->
+            <div 
+              class="palette-item border-2 border-black p-3 bg-color-chart-4 text-white cursor-grab neo-shadow hover:translate-y-[-2px] active:cursor-grabbing transition-transform select-none"
+              draggable="true" 
+              data-operator-type="window"
+            >
+              <div class="flex items-center gap-2 text-white font-black text-sm uppercase">
+                <span class="text-xl">⏳</span> {isIt ? 'Finestra (Window)' : 'Window'}
+              </div>
+              <p class="text-xs text-gray-200 font-bold mt-1">
+                {isIt ? 'Raggruppa i dati in finestre temporali' : 'Groups data elements into time or count windows'}
+              </p>
+            </div>
+
+            <!-- Reduce Card -->
+            <div 
+              class="palette-item border-2 border-black p-3 bg-white text-black cursor-grab neo-shadow hover:translate-y-[-2px] active:cursor-grabbing transition-transform select-none"
+              draggable="true" 
+              data-operator-type="reduce"
+            >
+              <div class="flex items-center gap-2 text-black font-black text-sm uppercase">
+                <span class="text-xl">📊</span> {isIt ? 'Riduzione (Reduce)' : 'Reduce'}
+              </div>
+              <p class="text-xs text-gray-700 font-bold mt-1">
+                {isIt ? 'Aggrega o riduce i dati calcolando somme, medie, etc.' : 'Aggregates windowed streams (sum, average, min/max)'}
+              </p>
+            </div>
+
+            <!-- Sink Card -->
+            <div 
+              class="palette-item border-2 border-black p-3 bg-color-chart-3 cursor-grab neo-shadow hover:translate-y-[-2px] active:cursor-grabbing transition-transform select-none"
+              draggable="true" 
+              data-operator-type="sink"
+            >
+              <div class="flex items-center gap-2 text-black font-black text-sm uppercase">
+                <span class="text-xl">💾</span> {isIt ? 'Destinazione (Sink)' : 'Sink'}
+              </div>
+              <p class="text-xs text-gray-700 font-bold mt-1">
+                {isIt ? 'Salva i dati (Postgres, S3, Slack notification)' : 'Outputs stream to databases, files or webhooks'}
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Tip Box -->
+        <div class="border-4 border-black bg-white p-4 neo-shadow text-black font-bold text-xs leading-relaxed">
+          <span class="font-black block uppercase mb-1">💡 {isIt ? 'Suggerimento' : 'Connection Tip'}</span>
+          {isIt 
+            ? 'Collega gli operatori cliccando sulla porta di uscita verde e poi sulla porta di ingresso viola di un altro nodo. Puoi anche trascinare direttamente da una porta all\'altra.'
+            : 'Connect operators by clicking a green output port and then a purple input port of another node. You can also drag lines directly between ports.'}
+        </div>
+      </aside>
+
+      <!-- Center Panel: DAG Canvas Viewport -->
+      <main class="lg:col-span-6 flex flex-col">
+        <div class="border-4 border-black bg-white p-6 neo-shadow flex flex-col">
+          <div class="border-b-2 border-black pb-3 mb-4 flex items-center justify-between">
+            <h2 class="font-black text-lg uppercase text-black">
+              {isIt ? 'Workspace della Pipeline' : 'Pipeline Workspace'}
+            </h2>
+            <div class="font-mono text-xs text-gray-500 bg-gray-100 border border-black px-2 py-0.5" id="canvas-zoom-indicator">
+              Zoom: 100% | Pan: 0,0
+            </div>
+          </div>
+
+          <!-- Canvas Container -->
+          <div 
+            class="dag-canvas-container border-4 border-black relative overflow-hidden h-[550px] bg-background bg-[linear-gradient(to_right,#0000000d_1px,transparent_1px),linear-gradient(to_bottom,#0000000d_1px,transparent_1px)] bg-[size:20px_20px]" 
+            id="dag-container"
+          >
+            <div id="dag-viewport" class="w-full h-full relative">
+              <!-- Background SVG for connection paths and animations -->
+              <svg class="dag-connections-svg w-full h-full absolute inset-0" id="connections-svg" style="z-index: 0;">
+                <!-- Target connection markers exist in global HTML head filter svg -->
+              </svg>
+              
+              <!-- Temporary drag SVG line container -->
+              <svg class="absolute inset-0 w-full h-full pointer-events-none" id="temp-connection-svg" style="z-index: 10;">
+                <path id="temp-connection-path" fill="none" stroke="#2b8a3e" stroke-width="3" stroke-dasharray="5,5" d="" style="display: none;"></path>
+              </svg>
+
+              <!-- Dynamic nodes will be generated here -->
+            </div>
+          </div>
+
+          <div class="text-xs text-gray-500 font-mono flex justify-between mt-2 select-none">
+            <span>{isIt ? '🖱️ Trascina lo sfondo per spostarti, rotellina per zoomare' : '🖱️ Drag canvas background to pan, scroll wheel to zoom'}</span>
+            <span>{isIt ? 'Double-click vuoto per resettare inquadratura' : 'Double-click empty canvas to reset view'}</span>
+          </div>
+        </div>
+      </main>
+
+      <!-- Right Panel: Operator Inspector and Live Rust Code -->
+      <aside class="lg:col-span-3">
+        <div class="notebook-card border-4 border-black bg-white neo-shadow p-6 relative">
+          <!-- Spiral notebook visual decoration -->
+          <div class="notebook-spiral absolute -left-4 top-4 bottom-4 flex flex-col justify-around pointer-events-none select-none z-10">
+            {[...Array(8)].map(() => (
+              <span class="w-8 h-3 border-2 border-black bg-gray-200 inline-block rotate-90 rounded-full neo-shadow"></span>
+            ))}
+          </div>
+
+          <div class="notebook-content pl-4 text-black">
+            <div class="notebook-header border-b-2 border-black pb-3 mb-4 flex items-center justify-between">
+              <h2 class="font-black text-lg uppercase text-black" id="inspector-title">
+                {isIt ? 'Analisi Pipeline' : 'Global Pipeline'}
+              </h2>
+              <span class="notebook-badge bg-color-chart-3 text-black font-black text-xs uppercase px-2 py-0.5 border-2 border-black" id="inspector-badge">
+                {isIt ? 'STRUTTURA' : 'GRAPH'}
+              </span>
+            </div>
+
+            <!-- Content Area dynamically toggled by JS selection -->
+            <div class="notebook-body space-y-4" id="inspector-content">
+              
+              <!-- State 1: Global Pipeline Stats (Default) -->
+              <div id="inspector-global-state" class="space-y-4">
+                <div class="notebook-stat-row flex justify-between border-b border-gray-200 pb-2">
+                  <span class="label font-bold text-gray-500 uppercase text-xs">{isIt ? 'Operatori' : 'Operators'}</span>
+                  <span class="value font-black text-sm font-mono" id="stat-operator-count">0</span>
+                </div>
+                <div class="notebook-stat-row flex justify-between border-b border-gray-200 pb-2">
+                  <span class="label font-bold text-gray-500 uppercase text-xs">{isIt ? 'Collegamenti' : 'Connections'}</span>
+                  <span class="value font-black text-sm font-mono" id="stat-connection-count">0</span>
+                </div>
+                <div class="notebook-stat-row flex justify-between border-b border-gray-200 pb-2">
+                  <span class="label font-bold text-gray-500 uppercase text-xs">{isIt ? 'Stato' : 'Status'}</span>
+                  <span class="value font-black text-sm text-green-600" id="stat-sim-status">{isIt ? 'Attivo (Demo)' : 'Running (Demo)'}</span>
+                </div>
+
+                <div class="notebook-custom-section border-2 border-black p-3 bg-gray-50">
+                  <h3 class="font-black text-xs uppercase mb-1">{isIt ? 'Console Messaggi' : 'Console Log'}</h3>
+                  <div class="log-console font-mono text-[10px] leading-relaxed h-28 overflow-y-auto space-y-1 text-gray-700 bg-white p-2 border border-black" id="builder-log-console">
+                    <div class="log-entry text-gray-400">--- {isIt ? 'In attesa di operatori...' : 'Ready for custom pipeline builder...'} ---</div>
+                  </div>
+                </div>
+
+                <!-- Consultation & Download Actions -->
+                <div class="flex flex-col gap-2 pt-2">
+                  <button class="sketch-btn text-xs font-black uppercase px-3 py-2 border-2 border-black bg-color-chart-2 hover:bg-green-300 text-black w-full text-center justify-center cursor-pointer select-none flex items-center gap-1" id="btn-download-pipeline">
+                    📥 {isIt ? 'Scarica Pipeline' : 'Download Pipeline'}
+                  </button>
+                  <button class="sketch-btn text-xs font-black uppercase px-3 py-2 border-2 border-black bg-color-chart-5 hover:bg-blue-400 text-white w-full text-center justify-center cursor-pointer select-none flex items-center gap-1" id="btn-consult-pipeline">
+                    💬 {isIt ? 'Invia per Consulenza' : 'Request Consultation'}
+                  </button>
+                </div>
+
+              </div>
+
+              <!-- State 2: Selected Operator Inspector (Hidden initially) -->
+              <div id="inspector-node-state" class="hidden space-y-4">
+                <div class="notebook-stat-row flex justify-between border-b border-gray-200 pb-2">
+                  <span class="label font-bold text-gray-500 uppercase text-xs">{isIt ? 'Tipo' : 'Type'}</span>
+                  <span class="value font-black text-xs uppercase text-black px-2 py-0.5 font-mono" id="selected-node-type-label">SOURCE</span>
+                </div>
+                
+                <!-- Editable Name -->
+                <div class="flex flex-col gap-1">
+                  <label class="font-bold text-gray-500 uppercase text-xs">{isIt ? 'Nome Operatore' : 'Operator Name'}</label>
+                  <input type="text" id="selected-node-name-input" class="border-2 border-black px-2 py-1 font-bold text-sm bg-white focus:bg-yellow-50 outline-none w-full" />
+                </div>
+
+                <!-- Editable Parameter -->
+                <div class="flex flex-col gap-1">
+                  <label class="font-bold text-gray-500 uppercase text-xs" id="selected-node-param-label">Query</label>
+                  <input type="text" id="selected-node-param-input" class="border-2 border-black px-2 py-1 font-mono text-xs bg-white focus:bg-yellow-50 outline-none w-full" />
+                </div>
+
+                <!-- Single Operator code block -->
+                <div class="border-2 border-black p-3 bg-black text-white">
+                  <h4 class="font-black text-[9px] uppercase text-gray-400 font-mono mb-1">// Rust Syntax</h4>
+                  <pre class="font-mono text-[9px] leading-tight overflow-x-auto bg-black text-gray-200 p-1"><code id="selected-node-rust-code">...</code></pre>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="flex gap-2 pt-2">
+                  <button class="sketch-btn text-xs font-black uppercase px-3 py-2 border-2 border-black bg-color-chart-2 hover:bg-green-300 text-black flex-1 text-center justify-center cursor-pointer select-none" id="btn-save-selected-node">
+                    {isIt ? 'Salva' : 'Save'}
+                  </button>
+                  <button class="sketch-btn text-xs font-black uppercase px-3 py-2 border-2 border-black bg-color-chart-4 hover:bg-red-200 text-white flex-1 text-center justify-center cursor-pointer select-none" id="btn-delete-selected-node">
+                    {isIt ? 'Elimina' : 'Delete'}
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+
+  <!-- Neobrutalist Question Config Modal -->
+  <div class="fixed inset-0 hidden items-center justify-center z-50 p-4" id="operator-config-modal">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black/60 cursor-pointer" id="modal-backdrop"></div>
+    
+    <!-- Modal Bounding Box -->
+    <div class="border-4 border-black bg-white p-6 neo-shadow w-full max-w-md relative z-10 text-black">
+      <div class="border-b-2 border-black pb-3 mb-4">
+        <h3 class="font-black text-xl uppercase" id="modal-title-label">
+          {isIt ? 'Configura Operatore' : 'Configure Operator'}
+        </h3>
+        <p class="text-xs text-gray-500 font-mono mt-1" id="modal-subtitle-label">
+          {isIt ? 'Inserisci i parametri per iniziare il calcolo' : 'Enter requirements to define the operator'}
+        </p>
+      </div>
+
+      <!-- Form Inputs -->
+      <form id="operator-config-form" class="space-y-4" onsubmit="return false;">
+        <!-- Hidden Inputs -->
+        <input type="hidden" id="modal-op-type" value="" />
+        <input type="hidden" id="modal-drop-x" value="" />
+        <input type="hidden" id="modal-drop-y" value="" />
+        <input type="hidden" id="modal-edit-id" value="" />
+
+        <!-- Operator Custom Display Name -->
+        <div class="flex flex-col gap-1">
+          <label for="modal-op-name" class="font-black text-xs uppercase">{isIt ? 'Nome Operatore' : 'Operator Name'}</label>
+          <input 
+            type="text" 
+            id="modal-op-name" 
+            required 
+            placeholder="My Node"
+            class="border-2 border-black p-2 font-bold text-sm bg-white focus:bg-yellow-50 outline-none w-full"
+          />
+        </div>
+
+        <!-- The Big Prompt Question -->
+        <div class="flex flex-col gap-2">
+          <label for="modal-op-query" class="font-black text-xs uppercase" id="modal-question-prompt">
+            Question prompt here...
+          </label>
+          <input 
+            type="text" 
+            id="modal-op-query" 
+            required
+            placeholder="parameter here..."
+            class="border-2 border-black p-2 font-mono text-sm bg-white focus:bg-yellow-50 outline-none w-full"
+          />
+        </div>
+
+        <!-- Query Presets / Suggestions -->
+        <div class="flex flex-col gap-1.5" id="presets-container-wrapper">
+          <span class="font-black text-[10px] text-gray-500 uppercase">{isIt ? 'Suggerimenti Rapidi (Presets)' : 'Quick Presets'}</span>
+          <div class="flex flex-wrap gap-2" id="modal-presets-container">
+            <!-- Buttons dynamically generated here -->
+          </div>
+        </div>
+
+        <!-- Submit & Cancel -->
+        <div class="flex gap-4 pt-3 border-t-2 border-dashed border-black mt-6">
+          <button 
+            type="button" 
+            id="btn-modal-cancel" 
+            class="sketch-btn text-xs font-black uppercase px-4 py-2.5 border-2 border-black bg-gray-100 hover:bg-gray-200 text-black flex-1 text-center justify-center cursor-pointer select-none"
+          >
+            {isIt ? 'Annulla' : 'Cancel'}
+          </button>
+          <button 
+            type="submit" 
+            id="btn-modal-submit" 
+            class="sketch-btn text-xs font-black uppercase px-4 py-2.5 border-2 border-black bg-color-chart-2 hover:bg-green-300 text-black flex-1 text-center justify-center cursor-pointer select-none"
+          >
+            {isIt ? 'Aggiungi' : 'Save'}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Custom Port CSS & Interaction Styles -->
+  <style is:global>
+    /* Styling ports for connections */
+    .node-port {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border: 2.5px solid #000000;
+      border-radius: 50%;
+      z-index: 20;
+      cursor: crosshair;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+    }
+    
+    .input-port {
+      left: -9px;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: var(--chart-1); /* Purple for input */
+    }
+    
+    .output-port {
+      right: -9px;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: var(--chart-2); /* Green for output */
+    }
+    
+    .node-port:hover {
+      transform: translateY(-50%) scale(1.35);
+      box-shadow: 0px 0px 0px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Port connecting active state styling */
+    .node-port.connecting-active {
+      background-color: var(--chart-3) !important; /* turns yellow */
+      transform: translateY(-50%) scale(1.4) !important;
+      box-shadow: 0px 0px 0px 6px rgba(250, 204, 0, 0.3) !important;
+      animation: portPulse 0.8s infinite alternate;
+    }
+
+    @keyframes portPulse {
+      0% { box-shadow: 0px 0px 0px 2px rgba(250, 204, 0, 0.2); }
+      100% { box-shadow: 0px 0px 0px 8px rgba(250, 204, 0, 0.4); }
+    }
+
+    /* Adjust DAG nodes in custom builder workspace */
+    .dag-node .node-content {
+      position: relative;
+    }
+
+    /* Palette grab item styles */
+    .palette-item {
+      user-select: none;
+      -webkit-user-drag: element;
+    }
+    
+    .palette-item:active {
+      cursor: grabbing;
+    }
+
+    /* Canvas connection line customization */
+    .dag-connections-svg, #temp-connection-svg {
+      overflow: visible !important;
+    }
+
+    .connection-path {
+      pointer-events: stroke;
+      cursor: pointer;
+    }
+    
+    .connection-path:hover {
+      stroke: var(--chart-4) !important; /* hover delete hint color (warning red) */
+      stroke-width: 5px;
+    }
+
+    /* Custom scrollbars for logs and pre tags */
+    .log-console::-webkit-scrollbar, pre::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .log-console::-webkit-scrollbar-track, pre::-webkit-scrollbar-track {
+      background: #000;
+    }
+    .log-console::-webkit-scrollbar-thumb, pre::-webkit-scrollbar-thumb {
+      background: #555;
+      border: 1px solid #000;
+    }
+    .log-console::-webkit-scrollbar-thumb:hover, pre::-webkit-scrollbar-thumb:hover {
+      background: #888;
+    }
+  </style>
+
+  <!-- Consultation Success Modal -->
+  <div class="fixed inset-0 hidden items-center justify-center z-50 p-4" id="consultation-modal">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black/60 cursor-pointer" id="consult-modal-backdrop"></div>
+    
+    <!-- Modal Box -->
+    <div class="border-4 border-black bg-white p-6 neo-shadow w-full max-w-md relative z-10 text-black">
+      <div class="border-b-2 border-black pb-3 mb-4">
+        <h3 class="font-black text-xl uppercase">
+          {isIt ? 'Apri Email per Consultazione' : 'Open Email for Consultation'}
+        </h3>
+      </div>
+      <p class="text-sm font-bold text-gray-700 leading-relaxed mb-6">
+        {isIt 
+          ? 'Abbiamo avviato il download del file JSON della tua pipeline e aperto il tuo client di posta. Per completare la richiesta, allega il file scaricato ("renoir-custom-pipeline.json") all\'email pre-compilata.'
+          : 'We have initiated the download of your pipeline JSON file and opened your email client. To complete the consultation request, please attach the downloaded file ("renoir-custom-pipeline.json") to the pre-filled email.'}
+      </p>
+      <button 
+        type="button" 
+        id="btn-consult-close" 
+        class="sketch-btn text-xs font-black uppercase px-4 py-2.5 border-2 border-black bg-black text-white hover:bg-gray-800 w-full text-center justify-center cursor-pointer select-none"
+      >
+        {isIt ? 'Ho capito' : 'Got it'}
+      </button>
+    </div>
+  </div>
+
+  <script is:inline>
+    // Sync theme-neobrutalist-dark class to body if system dark mode is active
+    if (document.documentElement.classList.contains('dark')) {
+      document.body.classList.add('theme-neobrutalist-dark');
+    }
+  </script>
+
+  <!-- Load Custom Builder Simulation and Editor Logic -->
+  <script is:inline src="/dashboard/builder.js" defer></script>
+</Layout>

@@ -244,10 +244,11 @@ if (activePath.startsWith(`/${lang}/`)) {
           </a>
           <a 
             href={getRelativeLocaleUrl(lang, '/dashboard')} 
-            class={`font-extrabold text-sm uppercase px-3 py-2 border-2 border-transparent hover:border-black hover:bg-white hover:neo-shadow transition-all whitespace-nowrap ${isRouteActive('/dashboard') ? 'bg-color-chart-1 text-black neo-border-thin neo-shadow' : ''}`}
+            class={`font-extrabold text-sm uppercase px-3 py-2 border-2 border-transparent hover:border-black hover:bg-white hover:neo-shadow transition-all whitespace-nowrap ${isRouteActive('/dashboard') && !activePath.includes('/builder') ? 'bg-color-chart-1 text-black neo-border-thin neo-shadow' : ''}`}
           >
             {m.nav_dashboard()}
           </a>
+
           <a 
             href={getRelativeLocaleUrl(lang, '/about')} 
             class={`font-extrabold text-sm uppercase px-3 py-2 border-2 border-transparent hover:border-black hover:bg-white hover:neo-shadow transition-all whitespace-nowrap ${isRouteActive('/about') ? 'bg-color-chart-1 text-black neo-border-thin neo-shadow' : ''}`}
@@ -270,6 +271,11 @@ if (activePath.startsWith(`/${lang}/`)) {
             <span>{otherLang}</span>
           </a>
           
+          <!-- Builder CTA -->
+          <a href={getRelativeLocaleUrl(lang, '/dashboard/builder')} class="font-black text-sm uppercase bg-color-chart-1 px-4 py-2 border-4 border-black neo-shadow neo-hover-shift text-black select-none whitespace-nowrap">
+            🛠️ {lang === 'it' ? 'Crea Pipeline' : 'Build Pipeline'}
+          </a>
+
           <!-- Book CTA -->
           <a href={getRelativeLocaleUrl(lang, '/contact')} class="font-black text-sm uppercase bg-color-chart-2 px-4 py-2 border-4 border-black neo-shadow neo-hover-shift text-black">
             {m.hero_action_1()}
@@ -297,6 +303,9 @@ if (activePath.startsWith(`/${lang}/`)) {
           </a>
           <a href={getRelativeLocaleUrl(lang, '/dashboard')} class="block p-3 border-2 border-black bg-white neo-shadow text-black">
             {m.nav_dashboard()}
+          </a>
+          <a href={getRelativeLocaleUrl(lang, '/dashboard/builder')} class="block p-3 border-2 border-black bg-white neo-shadow text-black">
+            {lang === 'it' ? 'Costruttore' : 'Builder'}
           </a>
           <a href={getRelativeLocaleUrl(lang, '/about')} class="block p-3 border-2 border-black bg-white neo-shadow text-black">
             {m.nav_about_us()}
@@ -353,6 +362,7 @@ if (activePath.startsWith(`/${lang}/`)) {
             <li><a href={getRelativeLocaleUrl(lang, '/renoir/overview')} class="hover:underline flex items-center gap-1"><Cpu class="w-4 h-4" /> {m.nav_renoir()} {m.nav_overview()}</a></li>
             <li><a href="/docs/" class="hover:underline flex items-center gap-1"><BookOpen class="w-4 h-4" /> {m.nav_documentation()}</a></li>
             <li><a href={getRelativeLocaleUrl(lang, '/dashboard')} class="hover:underline flex items-center gap-1"><Terminal class="w-4 h-4" /> {m.nav_dashboard()}</a></li>
+            <li><a href={getRelativeLocaleUrl(lang, '/dashboard/builder')} class="hover:underline flex items-center gap-1"><Cpu class="w-4 h-4" /> {lang === 'it' ? 'Costruttore Pipeline' : 'Pipeline Builder'}</a></li>
           </ul>
         </div>
 

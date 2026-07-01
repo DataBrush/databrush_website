@@ -49,6 +49,12 @@ const metadata = {
         </p>
         <div class="flex flex-wrap gap-4 mt-2">
           <a 
+            href={getRelativeLocaleUrl(lang, '/dashboard/builder')} 
+            class="font-black text-lg uppercase bg-color-chart-1 text-black px-6 py-4 border-4 border-black neo-shadow neo-hover-shift hover:bg-purple-300"
+          >
+            🛠️ {lang === 'it' ? 'Crea Pipeline' : 'Build Pipeline'}
+          </a>
+          <a 
             href="/docs/" 
             class="font-black text-lg uppercase bg-color-chart-2 text-black px-6 py-4 border-4 border-black neo-shadow neo-hover-shift"
           >
@@ -388,12 +394,20 @@ const metadata = {
         </div>
       </div>
 
-      <a 
-        href={getRelativeLocaleUrl(lang, '/contact')} 
-        class="font-black text-xl uppercase bg-black text-white px-8 py-5 border-4 border-black neo-shadow neo-hover-shift inline-block hover:bg-gray-900"
-      >
-        {m.renoir_contact_cta()}
-      </a>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a 
+          href={getRelativeLocaleUrl(lang, '/contact')} 
+          class="font-black text-xl uppercase bg-black text-white px-8 py-5 border-4 border-black neo-shadow neo-hover-shift inline-block hover:bg-gray-900"
+        >
+          {m.renoir_contact_cta()}
+        </a>
+        <a 
+          href={getRelativeLocaleUrl(lang, '/dashboard/builder')} 
+          class="font-black text-xl uppercase bg-white text-black px-8 py-5 border-4 border-black neo-shadow neo-hover-shift inline-block hover:bg-gray-50"
+        >
+          🛠️ {lang === 'it' ? 'Crea la tua Pipeline' : 'Build Custom Pipeline'}
+        </a>
+      </div>
     </div>
   </section>
 </Layout>
