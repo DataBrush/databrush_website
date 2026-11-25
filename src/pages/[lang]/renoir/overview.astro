@@ -55,7 +55,7 @@ const metadata = {
             🛠️ {lang === 'it' ? 'Crea Pipeline' : 'Build Pipeline'}
           </a>
           <a 
-            href="/docs/" 
+            href={getRelativeLocaleUrl(lang, '/docs')} 
             class="font-black text-lg uppercase bg-color-chart-2 text-black px-6 py-4 border-4 border-black neo-shadow neo-hover-shift"
           >
             {m.renoir_hero_action_1()}
@@ -270,7 +270,7 @@ const metadata = {
           </div>
 
           <a 
-            href="/docs/" 
+            href={getRelativeLocaleUrl(lang, '/docs')} 
             class="w-full text-center font-black text-md uppercase bg-black text-white px-6 py-4 border-4 border-black neo-shadow neo-hover-shift block hover:bg-gray-900"
           >
             {m.renoir_pricing_open_source_cta()}

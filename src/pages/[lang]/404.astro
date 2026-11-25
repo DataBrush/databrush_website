@@ -53,7 +53,7 @@ const metadata = {
               <span>{m.error_404_button_home()}</span>
             </a>
             <a 
-              href="/docs/" 
+              href={getRelativeLocaleUrl(lang, '/docs')} 
               class="flex items-center justify-center gap-2 font-black text-lg uppercase bg-white text-black px-6 py-4 border-4 border-black neo-shadow neo-hover-shift text-center hover:bg-gray-50"
             >
               <span>{m.error_404_button_docs()}</span>

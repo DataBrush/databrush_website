@@ -2,7 +2,7 @@
 import '../../theming.css';
 import { loadLocale } from '~/lib/i18n';
 import { getRelativeLocaleUrl } from 'astro:i18n';
-import { Menu, X, Globe, Cpu, BookOpen, Terminal, Mail, Info, FileText } from '@lucide/astro';
+import { Menu, X, Globe, ChevronDown, Check, Cpu, BookOpen, Terminal, Mail, Info, FileText } from '@lucide/astro';
 
 interface Props {
   metadata?: {
@@ -14,7 +14,7 @@ interface Props {
 const { metadata } = Astro.props;
 
 // Detect current locale
-const lang = Astro.currentLocale || 'en';
+const lang = Astro.currentLocale || (Astro.params.lang as string) || 'en';
 const m = loadLocale(lang);
 
 const siteTitle = metadata?.title ? `${metadata.title} | Databrush` : 'Databrush | High-Performance Data Infrastructure';
@@ -27,17 +27,25 @@ const isRouteActive = (path: string) => {
   return activePath.includes(path);
 };
 
-// Alternate language URL
+// Language options & locale URL helper
+const languages = [
+  { code: 'en', short: 'EN', label: 'English' },
+  { code: 'it', short: 'IT', label: 'Italiano' },
+] as const;
+
+const getPathForLocale = (targetLang: string) => {
+  if (activePath.startsWith(`/${lang}/`)) {
+    return activePath.replace(`/${lang}/`, `/${targetLang}/`);
+  } else if (activePath === `/${lang}`) {
+    return `/${targetLang}/`;
+  } else {
+    return `/${targetLang}${activePath}`;
+  }
+};
+
+const currentLanguage = languages.find((item) => item.code === lang) || languages[0];
 const otherLang = lang === 'en' ? 'it' : 'en';
-// Replace current language in path
-let alternatePath = activePath;
-if (activePath.startsWith(`/${lang}/`)) {
-  alternatePath = activePath.replace(`/${lang}/`, `/${otherLang}/`);
-} else if (activePath.startsWith(`/${lang}`)) {
-  alternatePath = activePath.replace(`/${lang}`, `/${otherLang}`);
-} else {
-  alternatePath = `/${otherLang}${activePath}`;
-}
+const alternatePath = getPathForLocale(otherLang);
 ---
 
 <!DOCTYPE html>
@@ -237,7 +245,7 @@ if (activePath.startsWith(`/${lang}/`)) {
             {m.nav_renoir()}
           </a>
           <a 
-            href="/docs/" 
+            href={getRelativeLocaleUrl(lang, '/docs')} 
             class={`font-extrabold text-sm uppercase px-3 py-2 border-2 border-transparent hover:border-black hover:bg-white hover:neo-shadow transition-all whitespace-nowrap ${isRouteActive('/docs') ? 'bg-color-chart-1 text-black neo-border-thin neo-shadow' : ''}`}
           >
             {m.nav_documentation()}
@@ -265,11 +273,48 @@ if (activePath.startsWith(`/${lang}/`)) {
 
         <!-- Right Action Button & Lang Switcher -->
         <div class="hidden md:flex items-center gap-4">
-          <!-- Language Switcher -->
-          <a href={alternatePath} class="flex items-center gap-1.5 font-bold font-mono text-xs uppercase bg-white border-2 border-black px-2.5 py-1.5 neo-shadow neo-hover-shift hover:bg-gray-100">
-            <Globe class="w-4 h-4" />
-            <span>{otherLang}</span>
-          </a>
+          <!-- Language Switcher Dropdown -->
+          <div class="relative group" data-testid="lang-switcher">
+            <button
+              type="button"
+              aria-haspopup="menu"
+              aria-label={lang === 'it' ? 'Seleziona lingua' : 'Select language'}
+              class="flex items-center gap-1.5 font-bold font-mono text-xs uppercase bg-white border-2 border-black px-2.5 py-1.5 neo-shadow hover:bg-gray-100 text-black cursor-pointer"
+            >
+              <Globe class="w-4 h-4" />
+              <span>{currentLanguage.short}</span>
+              <ChevronDown class="w-3.5 h-3.5 transition-transform duration-150 group-hover:rotate-180 group-focus-within:rotate-180" />
+            </button>
+
+            <div
+              role="menu"
+              class="absolute right-0 top-full pt-2 z-50 invisible opacity-0 pointer-events-none group-hover:visible group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100 group-focus-within:pointer-events-auto transition-all duration-150"
+            >
+              <div class="min-w-[152px] bg-white border-4 border-black neo-shadow overflow-hidden">
+                {languages.map((option) => {
+                  const isCurrent = option.code === lang;
+                  return (
+                    <a
+                      href={getPathForLocale(option.code)}
+                      role="menuitem"
+                      aria-current={isCurrent ? 'true' : undefined}
+                      class={`flex items-center justify-between gap-3 px-3 py-2 font-mono text-xs uppercase border-b-2 border-black last:border-b-0 transition-colors ${
+                        isCurrent
+                          ? 'bg-color-chart-1 text-black font-black'
+                          : 'bg-white text-black font-bold hover:bg-color-chart-3'
+                      }`}
+                    >
+                      <span class="flex items-center gap-2">
+                        <span class="font-black">{option.short}</span>
+                        <span class="normal-case font-sans font-bold">{option.label}</span>
+                      </span>
+                      {isCurrent && <Check class="w-3.5 h-3.5 shrink-0" />}
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
           
           <!-- Builder CTA -->
           <a href={getRelativeLocaleUrl(lang, '/dashboard/builder')} class="font-black text-sm uppercase bg-color-chart-1 px-4 py-2 border-4 border-black neo-shadow neo-hover-shift text-black select-none whitespace-nowrap">
@@ -298,7 +343,7 @@ if (activePath.startsWith(`/${lang}/`)) {
           <a href={getRelativeLocaleUrl(lang, '/renoir/overview')} class="block p-3 border-2 border-black bg-white neo-shadow text-black">
             {m.nav_renoir()}
           </a>
-          <a href="/docs/" class="block p-3 border-2 border-black bg-white neo-shadow text-black">
+          <a href={getRelativeLocaleUrl(lang, '/docs')} class="block p-3 border-2 border-black bg-white neo-shadow text-black">
             {m.nav_documentation()}
           </a>
           <a href={getRelativeLocaleUrl(lang, '/dashboard')} class="block p-3 border-2 border-black bg-white neo-shadow text-black">
@@ -314,10 +359,27 @@ if (activePath.startsWith(`/${lang}/`)) {
             {m.nav_contact()}
           </a>
           <div class="flex items-center justify-between pt-2">
-            <a href={alternatePath} class="flex items-center gap-1.5 font-bold font-mono text-xs uppercase bg-white border-2 border-black px-3 py-2 neo-shadow text-black">
-              <Globe class="w-4 h-4" />
-              <span>Switch to: {otherLang}</span>
-            </a>
+            <div class="flex items-center border-2 border-black bg-white neo-shadow overflow-hidden" role="group" aria-label={lang === 'it' ? 'Seleziona lingua' : 'Select language'}>
+              <span class="flex items-center px-2.5 py-2 border-r-2 border-black bg-gray-100 text-black">
+                <Globe class="w-4 h-4" />
+              </span>
+              {languages.map((option) => {
+                const isCurrent = option.code === lang;
+                return (
+                  <a
+                    href={getPathForLocale(option.code)}
+                    aria-current={isCurrent ? 'true' : undefined}
+                    class={`px-3 py-2 font-mono text-xs uppercase border-r-2 border-black last:border-r-0 ${
+                      isCurrent
+                        ? 'bg-color-chart-1 text-black font-black'
+                        : 'bg-white text-black font-bold hover:bg-gray-100'
+                    }`}
+                  >
+                    {option.short}
+                  </a>
+                );
+              })}
+            </div>
             <a href={getRelativeLocaleUrl(lang, '/contact')} class="font-black text-sm uppercase bg-color-chart-2 px-4 py-2.5 border-2 border-black neo-shadow text-black">
               {m.hero_action_1()}
             </a>
@@ -360,7 +422,7 @@ if (activePath.startsWith(`/${lang}/`)) {
           </h4>
           <ul class="space-y-2 font-bold text-sm">
             <li><a href={getRelativeLocaleUrl(lang, '/renoir/overview')} class="hover:underline flex items-center gap-1"><Cpu class="w-4 h-4" /> {m.nav_renoir()} {m.nav_overview()}</a></li>
-            <li><a href="/docs/" class="hover:underline flex items-center gap-1"><BookOpen class="w-4 h-4" /> {m.nav_documentation()}</a></li>
+            <li><a href={getRelativeLocaleUrl(lang, '/docs')} class="hover:underline flex items-center gap-1"><BookOpen class="w-4 h-4" /> {m.nav_documentation()}</a></li>
             <li><a href={getRelativeLocaleUrl(lang, '/dashboard')} class="hover:underline flex items-center gap-1"><Terminal class="w-4 h-4" /> {m.nav_dashboard()}</a></li>
             <li><a href={getRelativeLocaleUrl(lang, '/dashboard/builder')} class="hover:underline flex items-center gap-1"><Cpu class="w-4 h-4" /> {lang === 'it' ? 'Costruttore Pipeline' : 'Pipeline Builder'}</a></li>
           </ul>

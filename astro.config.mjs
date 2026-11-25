@@ -5,7 +5,11 @@ import sitemap from '@astrojs/sitemap';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://databrush.it',
-  integrations: [sitemap()],
+  integrations: [
+    sitemap({
+      filter: (page) => !page.startsWith('https://databrush.it/docs/'),
+    }),
+  ],
   i18n: {
     defaultLocale: 'en',
     locales: ['en', 'it'],

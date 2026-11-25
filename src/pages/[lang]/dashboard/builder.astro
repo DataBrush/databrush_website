@@ -76,7 +76,7 @@ const isIt = lang === 'it';
             : 'This tool shows only a fraction of what Renoir is capable of. For full features, read the docs or contact us.'}
         </span>
         <div class="flex gap-4 mt-2">
-          <a href="/docs/" class="underline font-black hover:text-gray-700 text-xs uppercase">{isIt ? 'Leggi i Docs' : 'Read Docs'} →</a>
+          <a href={getRelativeLocaleUrl(lang, '/docs')} class="underline font-black hover:text-gray-700 text-xs uppercase">{isIt ? 'Leggi i Docs' : 'Read Docs'} →</a>
           <a href={getRelativeLocaleUrl(lang, '/contact')} class="underline font-black hover:text-gray-700 text-xs uppercase ml-auto">{isIt ? 'Contattaci' : 'Contact Us'} →</a>
         </div>
       </div>
